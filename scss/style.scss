@@ -87,9 +87,9 @@ section {
 
 	$line-height: 1.45em;
 
-	max-width: $page-width;
+	max-width: $content-width;
 	margin: 0 auto;
-	padding-bottom: 50px;
+	margin-bottom: 50px;
 
 	line-height: $line-height;
 
@@ -98,7 +98,7 @@ section {
 	}
 
 	h2 {
-		margin: 25px 0;
+		padding: 25px 0;
 		font-size: 1.6em;
 		font-weight: 700;
 		font-style: italic;
@@ -108,7 +108,7 @@ section {
 
 footer {
 
-	max-width: $page-width;
+	max-width: $content-width;
 	margin: 0 auto;
 	margin-top: 80px;
 

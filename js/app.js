@@ -152,12 +152,11 @@
 	function scrollTo(elementSelector, duration) {
 		var startingY = window.pageYOffset;
 		var targetElement = document.querySelector(elementSelector);
-		var topPaddingScroll = 20;
 
 		var elementY = window.pageYOffset + targetElement.getBoundingClientRect().top;
 		var targetY = document.body.scrollHeight - elementY < window.innerHeight
 			? document.body.scrollHeight - window.innerHeight
-			: elementY - topPaddingScroll;
+			: elementY;
 		var diff = targetY - startingY;
 
 		var start;
