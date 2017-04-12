@@ -1,7 +1,0 @@
-
-# macOS files
-.DS_Store
-
-# css etc.
-.sass-cache/
-css/
