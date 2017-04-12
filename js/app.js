@@ -83,8 +83,34 @@
 		requestAnimationFrame(render);
 	}
 
+	// From http://stackoverflow.com/questions/13382516/getting-scroll-bar-width-using-javascript
+	function getScrollbarWidth() {
+		var outer = document.createElement('div');
+		outer.style.visibility = 'hidden';
+		outer.style.width = '100px';
+		outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+
+		document.body.appendChild(outer);
+
+		var widthNoScroll = outer.offsetWidth;
+		// force scrollbars
+		outer.style.overflow = 'scroll';
+
+		// add innerdiv
+		var inner = document.createElement('div');
+		inner.style.width = '100%';
+		outer.appendChild(inner);
+
+		var widthWithScroll = inner.offsetWidth;
+
+		// remove divs
+		outer.parentNode.removeChild(outer);
+
+		return widthNoScroll - widthWithScroll;
+	}
+
 	function resizeCanvas() {
-		canvas.width = window.innerWidth;
+		canvas.width = window.innerWidth - getScrollbarWidth();
 		canvas.height = window.innerHeight;
 
 		if (gl) {
@@ -93,8 +119,8 @@
 		}
 
 		// Move the first section to accomodate the header canvas (since it's positioned absolute)
-		var firstSection = document.querySelector('section:nth-of-type(1)');
-		firstSection.style.paddingTop = canvas.height + 'px';
+		//var firstSection = document.querySelector('section:nth-of-type(1)');
+		//firstSection.style.paddingTop = canvas.height + 'px';
 	}
 
 	// Resize the canvas to fill browser window dynamically

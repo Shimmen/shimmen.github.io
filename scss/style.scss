@@ -8,7 +8,7 @@ body, html {
 	box-sizing: border-box;
 
 	font-family: $font;
-	line-height: 1.4em;
+	line-height: 1.45em;
 
 	margin: 0;
 	padding: 0;
@@ -23,17 +23,21 @@ a {
 
 header {
 
-	position: relative;
+	border-bottom: 4px solid $text-color;
 
 	canvas {
 		display: block;
-		position: absolute;
-		z-index: 0;
+		position: relative;
+		z-index: 1;
 	}
 
 	nav {
 
+		z-index: 100;
 		position: absolute;
+		top: 0;
+		left: 0;
+
 		margin: 30px 30px;
 
 		li {
@@ -49,49 +53,49 @@ header {
 			}
 
 			h1 {
-				z-index: 1;
-
 				text-transform: lowercase;
 				text-decoration: underline;
 				font-style: italic;
 				font-size: 2.4em;
-
-				//border-bottom: 6px solid;
-				//padding-bottom: 8px;
 			}
 
 			p {
 				font-size: 1.2em;
 			}
 		}
+
 	}
-
-}
-
-.header-container {
-	// TODO
 }
 
 section {
-	padding-top: 20px;
-	padding-bottom: 60px;
-}
 
-/*
-section {
+	max-width: $page-width;
+	margin: 0 auto;
+	padding-bottom: 50px;
+
+	line-height: 1.45em;
 
 	h2 {
 		margin: 25px 0;
-		font-size: 1.4em;
-		font-weight: 600;
+		font-size: 1.6em;
+		font-weight: 700;
+		font-style: italic;
 		text-transform: lowercase;
 	}
-
-	padding-bottom: 60px;
-	max-width: 680px;
-	margin: 0 auto;
-
 }
-*/
+
+footer {
+
+	max-width: $page-width;
+	margin: 0 auto;
+	margin-top: 80px;
+
+	font-style: italic;
+	font-size: 0.8em;
+
+	p {
+		padding: 10px 0;
+	}
+}
 
 @import 'mobile';
