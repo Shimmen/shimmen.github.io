@@ -63,7 +63,23 @@ header {
 				font-size: 1.2em;
 			}
 		}
+	}
 
+	#scroll-down-btn {
+		$size: 70px;
+
+		cursor: pointer;
+
+		z-index: 100;
+		background: url($image-dir + 'angle_down.svg');
+		background-size: $size $size;
+
+		position: absolute;
+		width: $size;
+		height: $size;
+		left: 50%;
+		margin-left: -$size / 2;
+		bottom: 5px;
 	}
 }
 
