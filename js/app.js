@@ -1,5 +1,9 @@
 (function() {
 
+	/*
+	 * Header graphics script
+	 */
+
 	var canvas = document.getElementById('header-canvas');
 	resizeCanvas();
 
@@ -127,5 +131,67 @@
 	window.addEventListener('resize', resizeCanvas, false);
 
 	requestAnimationFrame(render);
+
+})();
+
+
+(function() {
+
+	/*
+	 * Smooth scrolling functionality
+	 */
+
+	function easeInOut(t) {
+		t = Math.max(0, Math.min(t, 1));
+		return t < 0.5
+			? 4 * t*t*t
+			: (t - 1) * (2*t - 2) * (2*t - 2) + 1;
+	}
+
+	// From http://stackoverflow.com/questions/17722497/scroll-smoothly-to-specific-element-on-page
+	function scrollTo(elementSelector, duration) {
+		var startingY = window.pageYOffset;
+		var targetElement = document.querySelector(elementSelector);
+		var topPaddingScroll = 20;
+
+		var elementY = window.pageYOffset + targetElement.getBoundingClientRect().top;
+		var targetY = document.body.scrollHeight - elementY < window.innerHeight
+			? document.body.scrollHeight - window.innerHeight
+			: elementY - topPaddingScroll;
+		var diff = targetY - startingY;
+
+		var start;
+
+		window.requestAnimationFrame(function step(timestamp) {
+			if (!start) start = timestamp;
+			var time = timestamp - start;
+			var completion = Math.min(time / duration, 1);
+			window.scrollTo(0, startingY + diff * easeInOut(completion));
+			if (time < duration) {
+				window.requestAnimationFrame(step)
+			}
+		});
+	}
+
+	var scrollTime = 850;
+
+	document.getElementById('scroll-down-btn').addEventListener('click', function () {
+		scrollTo('#about', scrollTime);
+	});
+
+	document.getElementById('about-link').addEventListener('click', function () {
+		scrollTo('#about', scrollTime);
+	});
+
+	document.getElementById('projects-link').addEventListener('click', function () {
+		scrollTo('#projects', scrollTime);
+	});
+
+	document.getElementById('resume-link').addEventListener('click', function () {
+		scrollTo('#resume', scrollTime);
+	});
+
+
+
 
 })();

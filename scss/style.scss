@@ -85,11 +85,17 @@ header {
 
 section {
 
+	$line-height: 1.45em;
+
 	max-width: $page-width;
 	margin: 0 auto;
 	padding-bottom: 50px;
 
-	line-height: 1.45em;
+	line-height: $line-height;
+
+	p {
+		margin-bottom: $line-height;
+	}
 
 	h2 {
 		margin: 25px 0;
