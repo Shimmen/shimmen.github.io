@@ -20,9 +20,9 @@
 					}
 				</script>
 				<script type="x-shader/x-fragment" id="quad.frag">
-					precision lowp float;
+					precision highp float; // need highp for time
 					varying lowp vec2 v_uv;
-					uniform lowp float u_time;
+					uniform float u_time;
 
 					const float TWO_PI = 2.0 * 3.14159265359;
 					const vec3 LUMA = vec3(0.2126,0.7152,0.0722);

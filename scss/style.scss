@@ -7,7 +7,7 @@ body, html {
 
 	box-sizing: border-box;
 
-	font-family: $font;
+	font-family: $text-font;
 	line-height: 1.45em;
 
 	margin: 0;
@@ -39,6 +39,8 @@ header {
 		left: 0;
 
 		margin: 30px 30px;
+
+		font-family: $display-font;
 
 		li {
 
@@ -85,7 +87,7 @@ header {
 
 section {
 
-	$line-height: 1.45em;
+	$line-height: 1.65em;
 
 	max-width: $content-width;
 	margin: 0 auto;
@@ -95,10 +97,12 @@ section {
 
 	p {
 		margin-bottom: $line-height;
+		line-height: $line-height;
 	}
 
 	h2 {
 		padding: 25px 0;
+		font-family: $display-font;
 		font-size: 1.6em;
 		font-weight: 700;
 		font-style: italic;
@@ -112,6 +116,7 @@ footer {
 	margin: 0 auto;
 	margin-top: 80px;
 
+	font-family: $display-font;
 	font-style: italic;
 	font-size: 0.8em;
 

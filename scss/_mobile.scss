@@ -18,7 +18,7 @@
 			float: left;
 			clear: left;
 
-			margin-bottom: 6px;
+			margin-bottom: 8px;
 			&:first-of-type {
 				margin-bottom: 40px;
 			}
@@ -31,9 +31,11 @@
 	}
 
 	section {
+		h2 {
+			font-size: 1.8em;
+		}
 		p {
-			font-size: 0.8em;
-			line-height: 1.25em;
+			font-size: 1.0em;
 		}
 	}
 
