@@ -121,14 +121,11 @@
 			gl.viewport(0, 0, canvas.width, canvas.height);
 			render();
 		}
-
-		// Move the first section to accomodate the header canvas (since it's positioned absolute)
-		//var firstSection = document.querySelector('section:nth-of-type(1)');
-		//firstSection.style.paddingTop = canvas.height + 'px';
 	}
 
 	// Resize the canvas to fill browser window dynamically
-	window.addEventListener('resize', resizeCanvas, false);
+	//window.addEventListener('resize', resizeCanvas, false); // TODO: Do resize if NOT on mobile!
+	window.addEventListener('orientationchange', resizeCanvas, false);
 
 	requestAnimationFrame(render);
 
