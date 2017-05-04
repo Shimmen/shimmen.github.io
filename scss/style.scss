@@ -96,6 +96,7 @@ section {
 	line-height: $line-height;
 
 	p {
+		font-size: 1em;
 		margin-bottom: $line-height;
 		line-height: $line-height;
 	}
@@ -115,6 +116,7 @@ footer {
 	max-width: $content-width;
 	margin: 0 auto;
 	margin-top: 80px;
+	margin-bottom: 10px;
 
 	font-family: $display-font;
 	font-style: italic;
