@@ -114,7 +114,16 @@
 	}
 
 	function resizeCanvas() {
-		canvas.width = window.innerWidth - getScrollbarWidth();
+
+		var newWidth = window.innerWidth - getScrollbarWidth();
+
+		// Only change the canvas size if the width has changed (i.e. rotating device or changing window size). Some
+		// mobile browsers change the window size when scrolling up and down, and we don't care about those events.
+		if (canvas.width == newWidth) {
+			return;
+		}
+
+		canvas.width = newWidth;
 		canvas.height = window.innerHeight;
 
 		if (gl) {
@@ -124,7 +133,7 @@
 	}
 
 	// Resize the canvas to fill browser window dynamically
-	//window.addEventListener('resize', resizeCanvas, false); // TODO: Do resize if NOT on mobile!
+	window.addEventListener('resize', resizeCanvas, false);
 	window.addEventListener('orientationchange', resizeCanvas, false);
 
 	requestAnimationFrame(render);
