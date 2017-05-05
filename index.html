@@ -54,7 +54,7 @@
 
 						// Add noise
 						float noise = rand(uv + sin(time) + cos(time));
-						float noiseAmount = 0.09 * smoothstep(0.7, 0.9, fragLuma);
+						float noiseAmount = max(0.023, 0.09 * smoothstep(0.7, 0.9, fragLuma));
 						gl_FragColor += noiseAmount * (vec4(noise, noise, noise, 1.0) * 2.0 - 1.0);
 					}
 				</script>
