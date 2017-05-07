@@ -136,7 +136,12 @@
 	window.addEventListener('resize', resizeCanvas, false);
 	window.addEventListener('orientationchange', resizeCanvas, false);
 
-	requestAnimationFrame(render);
+	// Start animation when DOM is loaded
+	window.addEventListener('DOMContentLoaded', function () {
+		resizeCanvas();
+		requestAnimationFrame(render);
+	}, false);
+
 
 })();
 
@@ -156,6 +161,10 @@
 
 	// From http://stackoverflow.com/questions/17722497/scroll-smoothly-to-specific-element-on-page
 	function scrollTo(elementSelector, duration) {
+		if (duration === undefined) {
+			duration = 850;
+		}
+
 		var startingY = window.pageYOffset;
 		var targetElement = document.querySelector(elementSelector);
 
@@ -178,25 +187,34 @@
 		});
 	}
 
-	var scrollTime = 850;
-
 	document.getElementById('scroll-down-btn').addEventListener('click', function () {
-		scrollTo('#about', scrollTime);
+		scrollTo('#about');
 	});
 
 	document.getElementById('about-link').addEventListener('click', function () {
-		scrollTo('#about', scrollTime);
+		scrollTo('#about');
 	});
 
 	document.getElementById('projects-link').addEventListener('click', function () {
-		scrollTo('#projects', scrollTime);
+		scrollTo('#projects');
 	});
 
 	document.getElementById('resume-link').addEventListener('click', function () {
-		scrollTo('#resume', scrollTime);
+		scrollTo('#resume');
 	});
 
-
-
+/*
+	// Since the canvas gets its size dynamically, we have to scroll down
+	// to the section manually for it to work consistently.
+	window.addEventListener('DOMContentLoaded', function () {
+		var urlParts = window.location.href.split('/');
+		if (urlParts.length > 0) {
+			var requestedSection = urlParts[urlParts.length - 1];
+			if (requestedSection.length > 0) {
+				scrollTo(requestedSection);
+			}
+		}
+	}, false);
+*/
 
 })();
