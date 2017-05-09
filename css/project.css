@@ -128,6 +128,9 @@ header h1 {
       font-size: 1.8em;
       text-align: center; } }
 
+#no-webgl2-error {
+  color: #ff4444; }
+
 section h1 {
   display: block;
   padding: 65px 0 25px 0;
