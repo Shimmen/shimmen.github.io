@@ -1,0 +1,152 @@
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline; }
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block; }
+
+body {
+  line-height: 1; }
+
+ol, ul {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+body, html {
+  background-color: #eee;
+  color: #333;
+  box-sizing: border-box;
+  font-family: "Open Sans", sans-serif;
+  line-height: 1.45em;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%; }
+
+a {
+  color: #333; }
+
+section {
+  max-width: 850px;
+  margin: 0 auto;
+  margin-bottom: 16px;
+  line-height: 1.65em; }
+  @media (max-width: 878px) {
+    section {
+      margin-left: 14px;
+      margin-right: 14px;
+      margin-bottom: 20px; } }
+  section p, section pre, section code {
+    font-size: 1em;
+    margin-bottom: 1.65em;
+    line-height: 1.65em; }
+  section h2 {
+    font-size: 1.7em;
+    padding: 25px 0;
+    font-family: "Space Mono", monospace;
+    font-weight: 700;
+    font-style: italic;
+    text-transform: lowercase; }
+
+code {
+  font-family: "Source Code Pro", monospace;
+  display: block;
+  overflow-x: auto;
+  padding: 6px;
+  padding-left: 12px;
+  border-radius: 6px;
+  font-size: 1.0em;
+  background-color: #444;
+  color: #eee;
+  -webkit-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
+  -moz-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
+  box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6); }
+  @media (max-width: 768px) {
+    code {
+      font-size: 0.8em !important; } }
+
+footer {
+  max-width: 850px;
+  margin: 0 auto;
+  margin-top: 80px;
+  margin-bottom: 10px;
+  font-family: "Space Mono", monospace;
+  font-style: italic;
+  font-size: 0.8em; }
+  @media (max-width: 878px) {
+    footer {
+      margin-left: 14px;
+      margin-right: 14px; } }
+
+header h1 {
+  margin: 30px 30px;
+  font-size: 2.4em;
+  font-family: "Space Mono", monospace;
+  text-transform: lowercase;
+  text-decoration: underline;
+  font-style: italic; }
+  @media (max-width: 768px) {
+    header h1 {
+      margin: 20px 0;
+      font-size: 1.8em;
+      text-align: center; } }
+
+section h1 {
+  display: block;
+  padding: 65px 0 25px 0;
+  font-size: 2.5em;
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  font-style: italic; }
+  @media (max-width: 768px) {
+    section h1 {
+      padding: 40px 0 25px 0;
+      font-size: 2.1em;
+      text-align: center; } }
+  section h1 small {
+    display: block;
+    font-size: 0.4em;
+    font-weight: normal;
+    text-transform: none;
+    font-style: normal;
+    color: #444;
+    margin-top: 14px; }
+
+/*# sourceMappingURL=project.css.map */

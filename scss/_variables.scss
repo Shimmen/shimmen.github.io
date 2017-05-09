@@ -11,6 +11,6 @@ $code-background: #444;
 $code-text-color: $bg-color;
 
 $content-width: 850px;
-$tight-content-margin: 14px; // for when screens are smaller than content-width
+$min-content-margin: 14px; // always asure at least this much margin on left/right
 
 $image-dir: '../assets/';

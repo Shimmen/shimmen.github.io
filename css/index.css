@@ -1,7 +1,9 @@
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
 /* http://meyerweb.com/eric/tools/css/reset/
    v2.0 | 20110126
    License: none (public domain)
 */
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
 @import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -60,6 +62,58 @@ body, html {
 a {
   color: #333; }
 
+section {
+  max-width: 850px;
+  margin: 0 auto;
+  margin-bottom: 16px;
+  line-height: 1.65em; }
+  @media (max-width: 878px) {
+    section {
+      margin-left: 14px;
+      margin-right: 14px;
+      margin-bottom: 20px; } }
+  section p, section pre, section code {
+    font-size: 1em;
+    margin-bottom: 1.65em;
+    line-height: 1.65em; }
+  section h2 {
+    font-size: 1.7em;
+    padding: 25px 0;
+    font-family: "Space Mono", monospace;
+    font-weight: 700;
+    font-style: italic;
+    text-transform: lowercase; }
+
+code {
+  font-family: "Source Code Pro", monospace;
+  display: block;
+  overflow-x: auto;
+  padding: 6px;
+  padding-left: 12px;
+  border-radius: 6px;
+  font-size: 1.0em;
+  background-color: #444;
+  color: #eee;
+  -webkit-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
+  -moz-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
+  box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6); }
+  @media (max-width: 768px) {
+    code {
+      font-size: 0.8em !important; } }
+
+footer {
+  max-width: 850px;
+  margin: 0 auto;
+  margin-top: 80px;
+  margin-bottom: 10px;
+  font-family: "Space Mono", monospace;
+  font-style: italic;
+  font-size: 0.8em; }
+  @media (max-width: 878px) {
+    footer {
+      margin-left: 14px;
+      margin-right: 14px; } }
+
 header {
   border-bottom: 4px solid #333; }
   header canvas {
@@ -99,55 +153,7 @@ header {
     margin-left: -35px;
     bottom: 5px; }
 
-section {
-  max-width: 850px;
-  margin: 0 auto;
-  margin-bottom: 16px;
-  line-height: 1.65em; }
-  section p, section pre, section code {
-    font-size: 1em;
-    margin-bottom: 1.65em;
-    line-height: 1.65em; }
-  section h2 {
-    padding: 25px 0;
-    font-family: "Space Mono", monospace;
-    font-size: 1.7em;
-    font-weight: 700;
-    font-style: italic;
-    text-transform: lowercase; }
-
-footer {
-  max-width: 850px;
-  margin: 0 auto;
-  margin-top: 80px;
-  margin-bottom: 10px;
-  font-family: "Space Mono", monospace;
-  font-style: italic;
-  font-size: 0.8em; }
-  footer p {
-    padding: 10px 0; }
-
-code {
-  font-family: "Source Code Pro", monospace;
-  display: block;
-  overflow-x: auto;
-  padding: 6px;
-  padding-left: 12px;
-  border-radius: 6px;
-  background-color: #444;
-  color: #eee;
-  -webkit-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
-  -moz-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
-  box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6); }
-
-@media only screen and (max-width: 878px) {
-  section, footer {
-    margin-left: 14px;
-    margin-right: 14px; }
-
-  section {
-    margin-bottom: 20px; } }
-@media only screen and (max-width: 768px) {
+@media (max-width: 768px) {
   header li {
     float: left;
     clear: left;
@@ -157,14 +163,6 @@ code {
   header h1 {
     margin: 0;
     padding: 0;
-    font-size: 2.0em !important; }
+    font-size: 2.0em !important; } }
 
-  section h2 {
-    font-size: 1.8em; }
-  section p {
-    font-size: 1.0em; }
-
-  code {
-    font-size: 0.7em !important; } }
-
-/*# sourceMappingURL=style.css.map */
+/*# sourceMappingURL=index.css.map */

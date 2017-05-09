@@ -1,0 +1,100 @@
+@import 'reset';
+@import 'variables';
+@import 'mobile';
+
+body, html {
+	background-color: $bg-color;
+	color: $text-color;
+
+	box-sizing: border-box;
+
+	font-family: $text-font;
+	line-height: 1.45em;
+
+	margin: 0;
+	padding: 0;
+
+	width: 100%;
+	height: 100%;
+}
+
+a {
+	color: $text-color;
+}
+
+section {
+
+	$line-height: 1.65em;
+
+	max-width: $content-width;
+	margin: 0 auto;
+	margin-bottom: 16px;
+
+	@include tight-screen {
+		margin-left: $min-content-margin;
+		margin-right: $min-content-margin;
+		margin-bottom: 20px;
+	}
+
+	line-height: $line-height;
+
+	p, pre, code {
+		font-size: 1em;
+		margin-bottom: $line-height;
+		line-height: $line-height;
+	}
+
+	h2 {
+		font-size: 1.7em;
+		@include mobile {
+			//font-size: 1.8em;
+		}
+
+		padding: 25px 0;
+		font-family: $display-font;
+		font-weight: 700;
+		font-style: italic;
+		text-transform: lowercase;
+	}
+}
+
+code {
+	font-family: $code-font;
+	display: block;
+	overflow-x: auto;
+
+	padding: 6px;
+	padding-left: 12px;
+	border-radius: 6px;
+
+	font-size: 1.0em;
+	@include mobile {
+		font-size: 0.8em !important;
+	}
+
+	background-color: $code-background;
+	color: $code-text-color;
+
+	-webkit-box-shadow: 4px 4px 20px 2px rgba(122,122,122,0.60);
+	-moz-box-shadow: 4px 4px 20px 2px rgba(122,122,122,0.60);
+	box-shadow: 4px 4px 20px 2px rgba(122,122,122,0.60);
+}
+
+footer {
+
+	max-width: $content-width;
+	margin: 0 auto;
+	margin-top: 80px;
+	margin-bottom: 10px;
+
+	@include tight-screen {
+		margin-left: $min-content-margin;
+		margin-right: $min-content-margin;
+	}
+
+	font-family: $display-font;
+	font-style: italic;
+	font-size: 0.8em;
+
+}
+
