@@ -85,7 +85,7 @@ footer {
 	max-width: $content-width;
 	margin: 0 auto;
 	margin-top: 80px;
-	margin-bottom: 10px;
+	margin-bottom: $min-content-margin;
 
 	@include tight-screen {
 		margin-left: $min-content-margin;
