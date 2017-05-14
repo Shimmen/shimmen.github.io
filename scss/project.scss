@@ -27,6 +27,35 @@ header {
 	color: #ff4444;
 }
 
+#fullscreen-btn {
+	display: block;
+	float: right;
+
+	margin: 0;
+	padding: 6px 10px;
+
+	font-family: $display-font;
+	font-size: 0.65em;
+	font-style: italic;
+	text-transform: lowercase;
+	border-radius: 0;
+	border: 0;
+	color: $bg-color;
+	background-color: $code-background;
+}
+
+.canvas-fullscreen {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.canvas-fullscreen-overflow {
+	overflow: hidden;
+}
+
 section {
 
 	h1 {
