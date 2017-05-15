@@ -134,6 +134,7 @@ header h1 {
 #fullscreen-btn {
   display: block;
   float: right;
+  cursor: pointer;
   margin: 0;
   padding: 6px 10px;
   font-family: "Space Mono", monospace;
