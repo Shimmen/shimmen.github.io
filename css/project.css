@@ -146,16 +146,6 @@ header h1 {
   color: #eee;
   background-color: #444; }
 
-.canvas-fullscreen {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0; }
-
-.canvas-fullscreen-overflow {
-  overflow: hidden; }
-
 section h1 {
   display: block;
   padding: 65px 0 25px 0;
