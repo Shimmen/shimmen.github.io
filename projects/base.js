@@ -50,21 +50,8 @@ if (webglActive) {
 		}
 	}
 
-	function render() {
-		// TODO: Do interesting stuff here!
-		gl2.viewport(0, 0, canvas.width, canvas.height);
-		gl2.clearColor(0.57, 0.75, 0.70, 1);
-		gl2.clear(gl2.COLOR_BUFFER_BIT);
-
-		requestAnimationFrame(render);
-	}
-
 	window.addEventListener('resize', function() { resizeCanvas(canvas, gl2); }, false);
 	window.addEventListener('orientationchange', function() { resizeCanvas(canvas, gl2); }, false);
-	window.addEventListener('DOMContentLoaded', function () {
-		resizeCanvas(canvas, gl2);
-		requestAnimationFrame(render);
-	}, false);
 
 	function isFullscreen() {
 		return document.fullscreenElement || document.webkitFullscreenElement ||
@@ -87,4 +74,16 @@ if (webglActive) {
 	document.addEventListener("webkitfullscreenchange", fullscreenStateChange);
 	document.addEventListener("mozfullscreenchange", fullscreenStateChange);
 	document.addEventListener("MSFullscreenChange", fullscreenStateChange);
+
+	function renderLoop() {
+		render(); // in the project-specifc code
+		requestAnimationFrame(renderLoop);
+	}
+
+	// Begin render loop when DOM is loaded
+	window.addEventListener('DOMContentLoaded', function () {
+		setup(canvas, gl2); // in the project-specifc code
+		resizeCanvas(canvas, gl2);
+		requestAnimationFrame(renderLoop);
+	}, false);
 }
