@@ -48,7 +48,7 @@ if (webglActive) {
 
 		}
 
-		onResize(); // in the project-specifc code
+		onResize(canvas.width, canvas.height); // in the project-specifc code
 	}
 
 	window.addEventListener('resize', function() { resizeCanvas(canvas); }, false);

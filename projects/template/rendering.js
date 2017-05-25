@@ -1,17 +1,23 @@
 
 var canvas;
-var gl;
+var app;
+
+var time = 0.0;
 
 function onSetup(_canvas) {
 	canvas = _canvas;
-	gl = canvas.getContext('webgl2');
+	app = PicoGL.createApp(canvas);
 }
 
-function onResize() {
-	gl.viewport(0, 0, canvas.width, canvas.height);
+function onResize(width, height) {
+	app.resize(width, height);
 }
 
 function onRender() {
-	gl.clearColor(0.57, 0.75, 0.70, 1);
-	gl.clear(gl.COLOR_BUFFER_BIT);
+
+	time += 1.0 / 60.0; // approx...
+	var r = 0.75 + (0.25 * Math.sin(time));
+	app.clearColor(r, 0.75, 0.70, 1);
+
+	app.clear();
 }
