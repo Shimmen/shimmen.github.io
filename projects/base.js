@@ -10,23 +10,26 @@ if (!canvas) {
 	btn.parentNode.removeChild(btn);
 }
 
-var gl2 = canvas.getContext('webgl2');
-if (!gl2) {
-	webglActive = false;
+{
+	var c = document.createElement('canvas');
+	var webgl2 = c.getContext('webgl2');
+	if (!webgl2) {
+		webglActive = false;
 
-	var message = document.createElement('p');
-	message.id = 'no-webgl2-error';
-	message.innerHTML = 'WebGL 2.0 doesn\'t seem to be supported in this browser and is required for this demo! ' +
-		'It should work on most modern desktop browsers though.';
-	canvas.parentNode.replaceChild(message, canvas);
+		var message = document.createElement('p');
+		message.id = 'no-webgl2-error';
+		message.innerHTML = 'WebGL 2.0 doesn\'t seem to be supported in this browser and is required for this demo! ' +
+			'It should work on most modern desktop browsers though.';
+		canvas.parentNode.replaceChild(message, canvas);
 
-	var btn = document.getElementById('fullscreen-btn');
-	btn.parentNode.removeChild(btn);
+		var btn = document.getElementById('fullscreen-btn');
+		btn.parentNode.removeChild(btn);
+	}
 }
 
 if (webglActive) {
 
-	function resizeCanvas(canvas, gl) {
+	function resizeCanvas(canvas) {
 		if (isFullscreen()) {
 
 			canvas.width = screen.width;
@@ -45,13 +48,11 @@ if (webglActive) {
 
 		}
 
-		if (gl) {
-			gl.viewport(0, 0, canvas.width, canvas.height);
-		}
+		onResize(); // in the project-specifc code
 	}
 
-	window.addEventListener('resize', function() { resizeCanvas(canvas, gl2); }, false);
-	window.addEventListener('orientationchange', function() { resizeCanvas(canvas, gl2); }, false);
+	window.addEventListener('resize', function() { resizeCanvas(canvas); }, false);
+	window.addEventListener('orientationchange', function() { resizeCanvas(canvas); }, false);
 
 	function isFullscreen() {
 		return document.fullscreenElement || document.webkitFullscreenElement ||
@@ -67,7 +68,7 @@ if (webglActive) {
 	}
 
 	function fullscreenStateChange() {
-		resizeCanvas(canvas, gl2);
+		resizeCanvas(canvas);
 	}
 
 	document.addEventListener("fullscreenchange", fullscreenStateChange);
@@ -76,14 +77,14 @@ if (webglActive) {
 	document.addEventListener("MSFullscreenChange", fullscreenStateChange);
 
 	function renderLoop() {
-		render(); // in the project-specifc code
+		onRender(); // in the project-specifc code
 		requestAnimationFrame(renderLoop);
 	}
 
 	// Begin render loop when DOM is loaded
 	window.addEventListener('DOMContentLoaded', function () {
-		setup(canvas, gl2); // in the project-specifc code
-		resizeCanvas(canvas, gl2);
+		onSetup(canvas); // in the project-specifc code
+		resizeCanvas(canvas);
 		requestAnimationFrame(renderLoop);
 	}, false);
 }

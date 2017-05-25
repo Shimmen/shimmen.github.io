@@ -2,12 +2,16 @@
 var canvas;
 var gl;
 
-function setup(_canvas, _gl) {
+function onSetup(_canvas) {
 	canvas = _canvas;
-	gl = _gl;
+	gl = canvas.getContext('webgl2');
 }
 
-function render() {
+function onResize() {
+	gl.viewport(0, 0, canvas.width, canvas.height);
+}
+
+function onRender() {
 	gl.clearColor(0.57, 0.75, 0.70, 1);
-	gl.clear(gl2.COLOR_BUFFER_BIT);
+	gl.clear(gl.COLOR_BUFFER_BIT);
 }
