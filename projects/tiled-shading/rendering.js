@@ -122,8 +122,9 @@ function randomInRange(min, max) {
 function onRender() {
 
 	time += 1.0 / 60.0; // approx...
-	var r = 0.75 + (0.25 * Math.sin(time));
-	app.clearColor(r, 0.75, 0.70, 1);
+	//var r = 0.75 + (0.25 * Math.sin(time));
+	//app.clearColor(r, 0.75, 0.70, 1);
+	app.clearColor(0, 0, 0, 1);
 	app.clear();
 
 	// Wait until model is fully loaded
@@ -166,10 +167,24 @@ function onRender() {
 			app.drawCalls([forwardAmbientDrawCall]);
 			app.noBlend().draw();
 
-			forwardDrawCall.uniform('lightDirection', vec3.fromValues(0, -1, 0));
 			forwardDrawCall.uniform('viewProjection', camera.viewProjection);
 			app.drawCalls([forwardDrawCall]);
-			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE).draw();
+			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE);
+
+			// Draw lights
+			{
+				forwardDrawCall.uniform('lightPos', vec3.fromValues(0, 0, 0));
+				forwardDrawCall.uniform('lightColor', vec3.fromValues(1, 0, 0));
+				app.draw();
+
+				forwardDrawCall.uniform('lightPos', vec3.fromValues(10, 0, 0));
+				forwardDrawCall.uniform('lightColor', vec3.fromValues(0, 1, 0));
+				app.draw();
+
+				forwardDrawCall.uniform('lightPos', vec3.fromValues(-10, 0, 0));
+				forwardDrawCall.uniform('lightColor', vec3.fromValues(0, 0, 1));
+				app.draw();
+			}
 		}
 		break;
 

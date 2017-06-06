@@ -46,22 +46,29 @@
 				layout(location = 1) in vec3 normal;
 				layout(location = 2) in mat4 modelMatrix;
 				uniform mat4 viewProjection;
-				uniform vec3 lightDirection;
-				flat out float lightIntensity;
+				smooth out vec3 worldPos;
+				smooth out vec3 worldNormal;
 				void main() {
-					vec3 worldNormal = mat3(modelMatrix) * normal; // assumes no separate xyz-scaling!
-					lightIntensity = max(0.0, dot(normalize(worldNormal), normalize(-lightDirection)));
+					worldNormal = mat3(modelMatrix) * normal; // assumes no separate xyz-scaling!
+					worldPos = vec3(modelMatrix * vec4(position, 1.0));
 					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
 				}
 			</script>
 			<script type="x-shader/x-vertex" id="forward-fs">
 				#version 300 es
 				precision mediump float;
-				flat in float lightIntensity;
+				smooth in vec3 worldPos;
+				smooth in vec3 worldNormal;
+				uniform vec3 lightPos; // world space
+				uniform vec3 lightColor;
 				out vec4 fragColor;
 				void main() {
-					vec3 col = vec3(1, 1, 1) * lightIntensity;
-					fragColor = vec4(col, 1);
+					vec3 toLight = lightPos - worldPos;
+					float distSquared = dot(toLight, toLight);
+					float atten = 1.0 / distSquared * 20.0;
+					float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
+					vec3 color = lightColor * intensity * atten;
+					fragColor = vec4(color, 1);
 				}
 			</script>
 
