@@ -1,7 +1,8 @@
 
 var app;
 
-var time = 0.0;
+var frameTimeElem;
+var lastTime = new Date().getTime();
 
 ////////////////////////////////////////////////////
 // ------------------  Data  ---------------------//
@@ -22,6 +23,7 @@ var modelMatrixData;
 var modelMatrixBuffer;
 
 var camera = {
+	aspectRatio: 16.0 / 9.0,
 	viewMatrix: mat4.create(),
 	projection: mat4.create(),
 	viewProjection: mat4.create()
@@ -37,6 +39,9 @@ var forwardDrawCall;
 function onSetup(canvas) {
 	app = PicoGL.createApp(canvas);
 	setupScene();
+
+	// Save DOM references
+	frameTimeElem = document.getElementById('frame-time-display');
 }
 
 function onResize(width, height) {
@@ -48,11 +53,24 @@ function onResize(width, height) {
 
 ////////////////////////////////////////////////////
 
+function renderModeChanged(selected) {
+	renderMode = selected.value;
+}
+
+function updateFrameTimeLabel(timeMs) {
+	if (frameTimeElem) {
+		frameTimeElem.innerHTML = 'Frame time: ' + timeMs + ' ms';
+	}
+}
+
+////////////////////////////////////////////////////
+
 function setupCamera(aspectRatio) {
 	var cameraPos = vec3.fromValues(0.0, 0.0, 2.0 * sceneSize);
 	mat4.lookAt(camera.viewMatrix, cameraPos, vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
 	mat4.perspective(camera.projection, Math.PI / 2.0, aspectRatio, 0.5, 100);
 	mat4.multiply(camera.viewProjection, camera.projection, camera.viewMatrix);
+	camera.aspectRatio = aspectRatio;
 }
 
 function setupScene() {
@@ -124,7 +142,7 @@ function randomAngle() {
 }
 function randomPositionInScene() {
 	return vec3.fromValues(
-		randomInRange(-sceneSize * 16 / 9, sceneSize * 16 / 9),
+		randomInRange(-sceneSize * camera.aspectRatio, sceneSize * camera.aspectRatio),
 		randomInRange(-sceneSize, sceneSize),
 		randomInRange(-sceneSize, sceneSize)
 	);
@@ -139,11 +157,14 @@ function randomColor() {
 
 function onRender() {
 
-	time += 1.0 / 60.0; // approx...
-	//var r = 0.75 + (0.25 * Math.sin(time));
-	//app.clearColor(r, 0.75, 0.70, 1);
-	app.clearColor(0, 0, 0, 1);
-	app.clear();
+	// Update timer
+	var currentTime = new Date().getTime();
+	var deltaMs = currentTime - lastTime;
+	var delta = deltaMs / 1000.0;
+	lastTime = currentTime;
+	updateFrameTimeLabel(deltaMs);
+
+	app.clearColor(0, 0, 0, 1).clear();
 
 	// Wait until model is fully loaded
 	if (!cubeVA) {
@@ -156,9 +177,9 @@ function onRender() {
 
 	for (var cube of cubes) {
 		// Rotate cubes
-		cube.rotationX += Math.random() * 0.01;
-		cube.rotationY += Math.random() * 0.02;
-		cube.rotationZ += Math.random() * 0.03;
+		cube.rotationX += Math.random() * 0.5 * delta;
+		cube.rotationY += Math.random() * 1.0 * delta;
+		cube.rotationZ += Math.random() * 2.0 * delta;
 
 		mat4.fromXRotation(rotXmatrix, cube.rotationX);
 		mat4.fromYRotation(rotYmatrix, cube.rotationY);
@@ -197,7 +218,7 @@ function onRender() {
 		}
 		break;
 
-		case 'forward-light-loop':
+		case 'forward-one-pass':
 		{
 			// TODO: Implement!
 		}

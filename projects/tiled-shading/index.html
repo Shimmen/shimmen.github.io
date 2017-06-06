@@ -22,6 +22,12 @@
 
 			<canvas id="canvas"></canvas>
 			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
+			<div>
+				<p id="frame-time-display"></p>
+				<div><input type="radio" name="renderMode" value="forward" onclick="renderModeChanged(this)" checked="checked"/> Forward Rendering (one pass per light)</div>
+				<div><input type="radio" name="renderMode" value="forward-one-pass" onclick="renderModeChanged(this)"/> Forward Rendering (one pass for all lights)</div>
+				<div><input type="radio" name="renderMode" value="tiled-shading" onclick="renderModeChanged(this)"/> Tiled Shading</div>
+			</div>
 
 			<script type="x-shader/x-vertex" id="forward-ambient-vs">
 				#version 300 es
