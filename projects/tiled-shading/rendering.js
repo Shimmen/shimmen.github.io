@@ -7,6 +7,8 @@ var time = 0.0;
 // ------------------  Data  ---------------------//
 ////////////////////////////////////////////////////
 
+var renderMode = 'forward';
+
 var sceneSize = 20.0;
 var numCubes = 700;
 
@@ -22,7 +24,7 @@ var camera = {
 	viewProjection: mat4.create()
 };
 
-var forwardShader;
+var forwardShader, forwardAmbientShader;
 var forwardDrawCall;
 
 ////////////////////////////////////////////////////
@@ -53,6 +55,7 @@ function setupCamera(aspectRatio) {
 function setupScene() {
 	// Setup shaders
 	forwardShader = makeShader('forward');
+	forwardAmbientShader = makeShader('forward-ambient');
 
 	// Set up buffer for storing the model matrices for the instanced cubes
 	modelMatrixData = new Float32Array(numCubes * 16 /* floats */);
@@ -61,8 +64,6 @@ function setupScene() {
 	OBJ.downloadMeshes({
 		'cube': '../assets/cube.obj'
 	}, function(meshes) {
-
-		console.log(meshes.cube);
 
 		let positions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.cube.vertices));
 		let normals = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.cube.vertexNormals));
@@ -78,6 +79,7 @@ function setupScene() {
 
 		// Create draw calls
 		forwardDrawCall = app.createDrawCall(forwardShader, cubeVA);
+		forwardAmbientDrawCall = app.createDrawCall(forwardAmbientShader, cubeVA);
 
 	});
 
@@ -95,58 +97,6 @@ function setupScene() {
 			modelMatrix: new Float32Array(modelMatrixData.buffer, i * 16 * 4, 16)
 		});
 	}
-}
-
-function makeCube() {
-	var positions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([
-		-1.0,  1.0, -1.0,
-		-1.0, -1.0, -1.0,
-		 1.0, -1.0, -1.0,
-		 1.0, -1.0, -1.0,
-		 1.0,  1.0, -1.0,
-		-1.0,  1.0, -1.0,
-
-		-1.0, -1.0,  1.0,
-		-1.0, -1.0, -1.0,
-		-1.0,  1.0, -1.0,
-		-1.0,  1.0, -1.0,
-		-1.0,  1.0,  1.0,
-		-1.0, -1.0,  1.0,
-
-		 1.0, -1.0, -1.0,
-		 1.0, -1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		 1.0,  1.0, -1.0,
-		 1.0, -1.0, -1.0,
-
-		-1.0, -1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		 1.0, -1.0,  1.0,
-		-1.0, -1.0,  1.0,
-
-		-1.0,  1.0, -1.0,
-		 1.0,  1.0, -1.0,
-		 1.0,  1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		-1.0,  1.0, -1.0,
-
-		-1.0, -1.0, -1.0,
-		-1.0, -1.0,  1.0,
-		 1.0, -1.0, -1.0,
-		 1.0, -1.0, -1.0,
-		-1.0, -1.0,  1.0,
-		 1.0, -1.0,  1.0
-	]));
-
-	var vertexArray = app.createVertexArray()
-	.vertexAttributeBuffer(0, positions)
-	.instanceAttributeBuffer(1, modelMatrixBuffer)
-
-	return vertexArray;
 }
 
 function makeShader(name) {
@@ -207,11 +157,32 @@ function onRender() {
 	// Update model matrix instance data
 	modelMatrixBuffer.data(modelMatrixData);
 
-	var lightDirection = vec3.fromValues(1, 1, 1);
-	vec3.normalize(lightDirection, lightDirection);
-	forwardDrawCall.uniform('lightDirection', lightDirection);
-	forwardDrawCall.uniform('viewProjection', camera.viewProjection);
+	switch (renderMode) {
+		case 'forward':
+		{
+			app.depthTest().depthFunc(PicoGL.LEQUAL);
 
-	app.drawCalls([forwardDrawCall]);
-	app.draw();
+			forwardAmbientDrawCall.uniform('viewProjection', camera.viewProjection);
+			app.drawCalls([forwardAmbientDrawCall]);
+			app.noBlend().draw();
+
+			forwardDrawCall.uniform('lightDirection', vec3.fromValues(0, -1, 0));
+			forwardDrawCall.uniform('viewProjection', camera.viewProjection);
+			app.drawCalls([forwardDrawCall]);
+			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE).draw();
+		}
+		break;
+
+		case 'forward-light-loop':
+		{
+			// TODO: Implement!
+		}
+		break;
+
+		case 'tiled-shading':
+		{
+			// TODO: Implement!
+		}
+		break;
+	}
 }

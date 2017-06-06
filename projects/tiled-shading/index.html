@@ -23,6 +23,23 @@
 			<canvas id="canvas"></canvas>
 			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
 
+			<script type="x-shader/x-vertex" id="forward-ambient-vs">
+				#version 300 es
+				layout(location = 0) in vec3 position;
+				layout(location = 2) in mat4 modelMatrix;
+				uniform mat4 viewProjection;
+				void main() {
+					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-vertex" id="forward-ambient-fs">
+				#version 300 es
+				precision mediump float;
+				out vec4 fragColor;
+				void main() {
+					fragColor = vec4(vec3(0.35), 1.0);
+				}
+			</script>
 			<script type="x-shader/x-vertex" id="forward-vs">
 				#version 300 es
 				layout(location = 0) in vec3 position;
@@ -32,7 +49,7 @@
 				uniform vec3 lightDirection;
 				flat out float lightIntensity;
 				void main() {
-					vec3 worldNormal = mat3(modelMatrix) * normal;
+					vec3 worldNormal = mat3(modelMatrix) * normal; // assumes no separate xyz-scaling!
 					lightIntensity = max(0.0, dot(normalize(worldNormal), normalize(-lightDirection)));
 					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
 				}
@@ -43,7 +60,7 @@
 				flat in float lightIntensity;
 				out vec4 fragColor;
 				void main() {
-					vec3 col = vec3(1, 1, 1) * max(0.35, lightIntensity);
+					vec3 col = vec3(1, 1, 1) * lightIntensity;
 					fragColor = vec4(col, 1);
 				}
 			</script>
