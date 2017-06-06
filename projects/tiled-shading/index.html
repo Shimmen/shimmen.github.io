@@ -65,7 +65,7 @@
 				void main() {
 					vec3 toLight = lightPos - worldPos;
 					float distSquared = dot(toLight, toLight);
-					float atten = 1.0 / distSquared * 20.0;
+					float atten = 1.0 / distSquared * 6.0;
 					float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
 					vec3 color = lightColor * intensity * atten;
 					fragColor = vec4(color, 1);

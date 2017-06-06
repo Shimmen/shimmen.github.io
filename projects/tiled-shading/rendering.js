@@ -10,10 +10,13 @@ var time = 0.0;
 var renderMode = 'forward';
 
 var sceneSize = 20.0;
-var numCubes = 700;
+var numCubes = 400;
+var numLights = 100;
 
 var cubeVA;
 var cubes = [];
+
+var lights = [];
 
 var modelMatrixData;
 var modelMatrixBuffer;
@@ -69,7 +72,6 @@ function setupScene() {
 		let normals = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.cube.vertexNormals));
 		let indices = app.createIndexBuffer(PicoGL.UNSIGNED_SHORT, 3, new Uint16Array(meshes.cube.indices));
 
-
 		// Create vertex array
 		cubeVA = app.createVertexArray()
 		.vertexAttributeBuffer(0, positions)
@@ -85,16 +87,19 @@ function setupScene() {
 
 	for (var i = 0; i < numCubes; i++) {
 		cubes.push({
-			position: vec3.fromValues(
-				randomInRange(-sceneSize * 16 / 9, sceneSize * 16 / 9),
-				randomInRange(-sceneSize, sceneSize),
-				randomInRange(-sceneSize, sceneSize)
-			),
-			rotationX: randomInRange(0.0, Math.PI * 2.0),
-			rotationY: randomInRange(0.0, Math.PI * 2.0),
-			rotationZ: randomInRange(0.0, Math.PI * 2.0),
+			position: randomPositionInScene(),
+			rotationX: randomAngle(),
+			rotationY: randomAngle(),
+			rotationZ: randomAngle(),
 			// Creates a view into the buffer so no copying has to occur
 			modelMatrix: new Float32Array(modelMatrixData.buffer, i * 16 * 4, 16)
+		});
+	}
+
+	for (var i = 0; i < numLights; i++) {
+		lights.push({
+			position: randomPositionInScene(),
+			color: randomColor()
 		});
 	}
 }
@@ -113,6 +118,19 @@ function makeShader(name) {
 
 function randomInRange(min, max) {
 	return Math.random() * (max - min) + min;
+}
+function randomAngle() {
+	return randomInRange(0.0, Math.PI * 2.0);
+}
+function randomPositionInScene() {
+	return vec3.fromValues(
+		randomInRange(-sceneSize * 16 / 9, sceneSize * 16 / 9),
+		randomInRange(-sceneSize, sceneSize),
+		randomInRange(-sceneSize, sceneSize)
+	);
+}
+function randomColor() {
+	return vec3.fromValues(Math.random(), Math.random(), Math.random());
 }
 
 ////////////////////////////////////////////////////
@@ -171,18 +189,9 @@ function onRender() {
 			app.drawCalls([forwardDrawCall]);
 			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE);
 
-			// Draw lights
-			{
-				forwardDrawCall.uniform('lightPos', vec3.fromValues(0, 0, 0));
-				forwardDrawCall.uniform('lightColor', vec3.fromValues(1, 0, 0));
-				app.draw();
-
-				forwardDrawCall.uniform('lightPos', vec3.fromValues(10, 0, 0));
-				forwardDrawCall.uniform('lightColor', vec3.fromValues(0, 1, 0));
-				app.draw();
-
-				forwardDrawCall.uniform('lightPos', vec3.fromValues(-10, 0, 0));
-				forwardDrawCall.uniform('lightColor', vec3.fromValues(0, 0, 1));
+			for (var light of lights) {
+				forwardDrawCall.uniform('lightPos', light.position);
+				forwardDrawCall.uniform('lightColor', light.color);
 				app.draw();
 			}
 		}
