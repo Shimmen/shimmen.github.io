@@ -51,14 +51,35 @@ function setupCamera(aspectRatio) {
 }
 
 function setupScene() {
+	// Setup shaders
+	forwardShader = makeShader('forward');
+
 	// Set up buffer for storing the model matrices for the instanced cubes
 	modelMatrixData = new Float32Array(numCubes * 16 /* floats */);
 	modelMatrixBuffer = app.createMatrixBuffer(PicoGL.FLOAT_MAT4, modelMatrixData);
 
-	cubeVA = makeCube(); // TODO: Load model with normals etc.!
+	OBJ.downloadMeshes({
+		'cube': '../assets/cube.obj'
+	}, function(meshes) {
 
-	forwardShader = makeShader('forward');
-	forwardDrawCall = app.createDrawCall(forwardShader, cubeVA);
+		console.log(meshes.cube);
+
+		let positions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.cube.vertices));
+		let normals = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.cube.vertexNormals));
+		let indices = app.createIndexBuffer(PicoGL.UNSIGNED_SHORT, 3, new Uint16Array(meshes.cube.indices));
+
+
+		// Create vertex array
+		cubeVA = app.createVertexArray()
+		.vertexAttributeBuffer(0, positions)
+		.vertexAttributeBuffer(1, normals)
+		.instanceAttributeBuffer(2, modelMatrixBuffer)
+		.indexBuffer(indices);
+
+		// Create draw calls
+		forwardDrawCall = app.createDrawCall(forwardShader, cubeVA);
+
+	});
 
 	for (var i = 0; i < numCubes; i++) {
 		cubes.push({
@@ -153,6 +174,12 @@ function onRender() {
 	time += 1.0 / 60.0; // approx...
 	var r = 0.75 + (0.25 * Math.sin(time));
 	app.clearColor(r, 0.75, 0.70, 1);
+	app.clear();
+
+	// Wait until model is fully loaded
+	if (!cubeVA) {
+		return;
+	}
 
 	var rotXmatrix = mat4.create();
 	var rotYmatrix = mat4.create();
@@ -180,9 +207,11 @@ function onRender() {
 	// Update model matrix instance data
 	modelMatrixBuffer.data(modelMatrixData);
 
-	// Set matrix uniforms
+	var lightDirection = vec3.fromValues(1, 1, 1);
+	vec3.normalize(lightDirection, lightDirection);
+	forwardDrawCall.uniform('lightDirection', lightDirection);
 	forwardDrawCall.uniform('viewProjection', camera.viewProjection);
 
 	app.drawCalls([forwardDrawCall]);
-	app.clear().draw();
+	app.draw();
 }
