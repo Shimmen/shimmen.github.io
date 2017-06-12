@@ -38,7 +38,7 @@
 					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
 				}
 			</script>
-			<script type="x-shader/x-vertex" id="forward-ambient-fs">
+			<script type="x-shader/x-fragment" id="forward-ambient-fs">
 				#version 300 es
 				precision mediump float;
 				out vec4 fragColor;
@@ -60,7 +60,7 @@
 					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
 				}
 			</script>
-			<script type="x-shader/x-vertex" id="forward-fs">
+			<script type="x-shader/x-fragment" id="forward-fs">
 				#version 300 es
 				precision mediump float;
 				smooth in vec3 worldPos;
@@ -75,6 +75,63 @@
 					float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
 					vec3 color = lightColor * intensity * atten;
 					fragColor = vec4(color, 1);
+				}
+			</script>
+
+			<script type="x-shader/x-vertex" id="forward-one-pass-vs">
+				#version 300 es
+				layout(location = 0) in vec3 position;
+				layout(location = 1) in vec3 normal;
+				layout(location = 2) in mat4 modelMatrix;
+				uniform mat4 viewProjection;
+				smooth out vec3 worldPos;
+				smooth out vec3 worldNormal;
+				void main() {
+					worldNormal = mat3(modelMatrix) * normal; // assumes no separate xyz-scaling!
+					worldPos = vec3(modelMatrix * vec4(position, 1.0));
+					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="forward-one-pass-fs">
+				#version 300 es
+				precision highp float;
+				smooth in vec3 worldPos;
+				smooth in vec3 worldNormal;
+
+				struct Light {
+					vec4 pos; // world space (x,y,z), w=padding
+					vec4 color; // (r,g,b), a=padding
+				};
+
+				const int MAX_NUM_LIGHTS = 100;
+				//layout(std140) uniform LightBlock
+				//{
+					uniform vec4 pos[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
+					uniform vec4 color[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
+					uniform int numLights;
+				//};
+
+				out vec4 fragColor;
+				void main() {
+
+					vec3 accumulatedColor = vec3(0, 0, 0);
+					Light light;
+
+					int numActiveLights = min(numLights, MAX_NUM_LIGHTS);
+					for (int i = 0; i < numActiveLights; i++) {
+
+						light.pos = pos[i];
+						light.color = color[i];
+
+						vec3 toLight = light.pos.xyz - worldPos;
+						float distSquared = dot(toLight, toLight);
+						float atten = 1.0 / distSquared * 6.0;
+						float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
+						vec3 color = light.color.rgb * intensity * atten;
+						accumulatedColor += color;
+					}
+
+					fragColor = vec4(accumulatedColor, 1.0);
 				}
 			</script>
 
@@ -101,7 +158,9 @@
 			<p>Simon Moos (c) 2017</p>
 		</footer>
 
-		<script src="../picogl.min.js" charset="utf-8"></script>
+		<!--<script src="../picogl.min.js" charset="utf-8"></script>-->
+		<script src="../picogl.js" charset="utf-8"></script>
+
 		<script src="../gl-matrix-min.js" charset="utf-8"></script>
 		<script src="../webgl-obj-loader.js" charset="utf-8"></script>
 		<script src="rendering.js" charset="utf-8"></script>
