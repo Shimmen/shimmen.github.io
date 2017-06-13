@@ -1,5 +1,5 @@
 /*
-PicoGL.js v0.3.2
+PicoGL.js v0.3.2 
 
 The MIT License (MIT)
 
@@ -28,7 +28,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     /**
         Global PicoGL module. For convenience, all WebGL enums are stored
         as properties of PicoGL (e.g. PicoGL.FLOAT, PicoGL.ONE_MINUS_SRC_ALPHA).
-
+        
         @namespace PicoGL
         @prop {string} version Current PicoGL version.
         @prop {object} TEXTURE_INTERNAL_FORMAT Map of framebuffer texture formats to internal formats.
@@ -43,7 +43,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         // Absorb all GL enums for convenience
         var canvas = document.createElement("canvas");
         var gl = canvas.getContext("webgl2");
-
+        
         if (!gl) {
             return;
         }
@@ -155,14 +155,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         };
 
         this.clearBits = this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT;
-
+        
         this.timer = new PicoGL.Timer(this.gl);
         this.cpuTime = 0;
         this.gpuTime = 0;
 
         this.floatRenderTargetsEnabled = false;
         this.linearFloatTexturesEnabled = false;
-
+        
         this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
     };
 
@@ -232,7 +232,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.viewportWidth = framebuffer.width;
             this.viewportHeight = framebuffer.height;
             this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
-        }
+        }      
 
         return this;
     };
@@ -259,14 +259,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         if (this.state.drawFramebuffer !== null) {
             this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, null);
             this.state.drawFramebuffer = null;
-
+            
             if (this.viewportWidth !== this.width || this.viewportHeight !== this.height) {
                 this.viewportWidth = this.width;
                 this.viewportHeight = this.height;
                 this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
-            }
+            } 
         }
-
+    
         return this;
     };
 
@@ -288,7 +288,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         Set the depth range.
 
         @method
-        @param {number} near Minimum depth value.
+        @param {number} near Minimum depth value. 
         @param {number} far Maximum depth value.
     */
     PicoGL.App.prototype.depthRange = function(near, far) {
@@ -411,7 +411,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     /**
-        Set the blend function, with separate weighting for color and alpha channels.
+        Set the blend function, with separate weighting for color and alpha channels. 
         E.g. app.blendFuncSeparate(PicoGL.ONE, PicoGL.ONE_MINUS_SRC_ALPHA, PicoGL.ONE, PicoGL.ONE).
 
         @method
@@ -457,11 +457,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     */
     PicoGL.App.prototype.floatRenderTargets = function() {
         this.floatRenderTargetsEnabled = !!this.gl.getExtension("EXT_color_buffer_float");
-
+        
         if (!this.floatRenderTargetsEnabled) {
             console.warn("Extension EXT_color_buffer_float unavailable. Cannot enable float textures.");
         }
-
+        
         return this;
     };
 
@@ -473,16 +473,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     */
     PicoGL.App.prototype.linearFloatTextures = function() {
         this.linearFloatTexturesEnabled = !!this.gl.getExtension("OES_texture_float_linear");
-
+        
         if (!this.linearFloatTexturesEnabled) {
             console.warn("Extension OES_texture_float_linear unavailable. Cannot enable float texture linear filtering.");
         }
-
+        
         return this;
     };
 
     /**
-        Read a pixel's color value from the canvas. Note that the RGBA values will be encoded
+        Read a pixel's color value from the canvas. Note that the RGBA values will be encoded 
         as 0-255.
 
         @method
@@ -512,7 +512,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.viewportWidth = this.width;
         this.viewportHeight = this.height;
         this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
-
+        
         return this;
     };
     /**
@@ -528,7 +528,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     /**
-        Create a shader. Creating a shader separately from a program allows for
+        Create a shader. Creating a shader separately from a program allows for 
         shader reuse.
 
         @method
@@ -576,7 +576,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         @method
         @param {GLEnum} type The data type stored in the matrix buffer. Valid types
-        are FLOAT_MAT4, FLOAT_MAT4x2, FLOAT_MAT4x3, FLOAT_MAT3, FLOAT_MAT3x2,
+        are FLOAT_MAT4, FLOAT_MAT4x2, FLOAT_MAT4x3, FLOAT_MAT3, FLOAT_MAT3x2, 
         FLOAT_MAT3x4, FLOAT_MAT2, FLOAT_MAT2x3, FLOAT_MAT2x4.
         @param {ArrayBufferView} data Matrix buffer data.
         @param {GLEnum} [usage=STATIC_DRAW] Buffer usage.
@@ -598,12 +598,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     /**
-        Create a uniform buffer in std140 layout. NOTE: FLOAT_MAT2, FLOAT_MAT3x2, FLOAT_MAT4x2,
+        Create a uniform buffer in std140 layout. NOTE: FLOAT_MAT2, FLOAT_MAT3x2, FLOAT_MAT4x2, 
         FLOAT_MAT3, FLOAT_MAT2x3, FLOAT_MAT4x3 are supported, but must be manually padded to
         4-float column alignment by the application!
 
         @method
-        @param {Array} layout Array indicating the order and types of items to
+        @param {Array} layout Array indicating the order and types of items to 
                         be stored in the buffer.
         @param {GLEnum} [usage=DYNAMIC_DRAW] Buffer usage.
     */
@@ -615,8 +615,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         Create a 2D texture.
 
         @method
-        @param {DOMElement|ArrayBufferView} image Image data. Can be any format that would be accepted
-                by texImage2D.
+        @param {DOMElement|ArrayBufferView} image Image data. Can be any format that would be accepted 
+                by texImage2D. 
         @param {number} [width] Texture width. Required for array data.
         @param {number} [height] Texture height. Required for array data.
         @param {Object} [options] Texture options.
@@ -630,7 +630,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.wrapT=REPEAT] Vertical wrap mode.
         @param {GLEnum} [options.compareMode=NONE] Comparison mode.
         @param {GLEnum} [options.compareFunc=LEQUAL] Comparison function.
-        @param {GLEnum} [options.baseLevel] Base mipmap level.
+        @param {GLEnum} [options.baseLevel] Base mipmap level. 
         @param {GLEnum} [options.maxLevel] Maximum mipmap level.
         @param {GLEnum} [options.minLOD] Mimimum level of detail.
         @param {GLEnum} [options.maxLOD] Maximum level of detail.
@@ -666,7 +666,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.wrapT=REPEAT] Vertical wrap mode.
         @param {GLEnum} [options.compareMode=NONE] Comparison mode.
         @param {GLEnum} [options.compareFunc=LEQUAL] Comparison function.
-        @param {GLEnum} [options.baseLevel] Base mipmap level.
+        @param {GLEnum} [options.baseLevel] Base mipmap level. 
         @param {GLEnum} [options.maxLevel] Maximum mipmap level.
         @param {GLEnum} [options.minLOD] Mimimum level of detail.
         @param {GLEnum} [options.maxLOD] Maximum level of detail.
@@ -696,7 +696,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.wrapR=REPEAT] Depth wrap mode.
         @param {GLEnum} [options.compareMode=NONE] Comparison mode.
         @param {GLEnum} [options.compareFunc=LEQUAL] Comparison function.
-        @param {GLEnum} [options.baseLevel] Base mipmap level.
+        @param {GLEnum} [options.baseLevel] Base mipmap level. 
         @param {GLEnum} [options.maxLevel] Maximum mipmap level.
         @param {GLEnum} [options.minLOD] Mimimum level of detail.
         @param {GLEnum} [options.maxLOD] Maximum level of detail.
@@ -753,8 +753,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     /**
-        Create a DrawCall. A DrawCall manages the state associated with
-        a WebGL draw call including a program and associated vertex data, textures,
+        Create a DrawCall. A DrawCall manages the state associated with 
+        a WebGL draw call including a program and associated vertex data, textures, 
         uniforms and uniform blocks.
 
         @method
@@ -766,7 +766,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         return new PicoGL.DrawCall(this.gl, program, vertexArray, primitive);
     };
 
-    /**
+    /** 
         Execute the currently attached list of DrawCalls.
 
         @method
@@ -779,7 +779,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         return this;
     };
 
-    /**
+    /** 
         Start the rendering timer.
 
         @method
@@ -790,7 +790,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         return this;
     };
 
-    /**
+    /** 
         Stop the rendering timer.
 
         @method
@@ -801,10 +801,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         return this;
     };
 
-    /**
+    /** 
         Check if the rendering time is available. If
         this method returns true, the cpuTime and
-        gpuTime properties will be set to valid
+        gpuTime properties will be set to valid 
         values.
 
         @method
@@ -892,6 +892,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             var uniformHandle = gl.getUniformLocation(this.program, uniformInfo.name);
             var UniformClass = null;
 
+            var arrayType = uniformInfo.size > 1;
+
             switch (uniformInfo.type) {
                 case PicoGL.INT:
                 case PicoGL.BOOL:
@@ -910,83 +912,89 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 case PicoGL.SAMPLER_3D:
                 case PicoGL.INT_SAMPLER_3D:
                 case PicoGL.UNSIGNED_INT_SAMPLER_3D:
-                    UniformClass = PicoGL.IntUniform;
+                    UniformClass = arrayType ? PicoGL.IntArrayUniform : PicoGL.IntUniform;
                     break;
                 case PicoGL.UNSIGNED_INT:
-                    UniformClass = PicoGL.UintUniform;
+                    UniformClass = arrayType ? PicoGL.UintArrayUniform : PicoGL.UintUniform;
                     break;
                 case PicoGL.FLOAT:
-                    UniformClass = PicoGL.FloatUniform;
+                    UniformClass = arrayType ? PicoGL.FloatArrayUniform : PicoGL.FloatUniform;
                     break;
                 case PicoGL.FLOAT_VEC2:
-                    UniformClass = PicoGL.Vec2Uniform;
+                    UniformClass = arrayType ? PicoGL.Vec2ArrayUniform : PicoGL.Vec2Uniform;
                     break;
                 case PicoGL.FLOAT_VEC3:
-                    UniformClass = PicoGL.Vec3Uniform;
+                    UniformClass = arrayType ? PicoGL.Vec3ArrayUniform : PicoGL.Vec3Uniform;
                     break;
                 case PicoGL.FLOAT_VEC4:
-                    UniformClass = PicoGL.Vec4Uniform;
+                    UniformClass = arrayType ? PicoGL.Vec4ArrayUniform : PicoGL.Vec4Uniform;
                     break;
                 case PicoGL.INT_VEC2:
-                    UniformClass = PicoGL.IntVec2Uniform;
+                    UniformClass = arrayType ? PicoGL.IntVec2ArrayUniform : PicoGL.IntVec2Uniform;
                     break;
                 case PicoGL.INT_VEC3:
-                    UniformClass = PicoGL.IntVec3Uniform;
+                    UniformClass = arrayType ? PicoGL.IntVec3ArrayUniform : PicoGL.IntVec3Uniform;
                     break;
                 case PicoGL.INT_VEC4:
-                    UniformClass = PicoGL.IntVec4Uniform;
+                    UniformClass = arrayType ? PicoGL.IntVec4ArrayUniform : PicoGL.IntVec4Uniform;
                     break;
                 case PicoGL.UNSIGNED_INT_VEC2:
-                    UniformClass = PicoGL.UintVec2Uniform;
+                    UniformClass = arrayType ? PicoGL.UintVec2ArrayUniform : PicoGL.UintVec2Uniform;
                     break;
                 case PicoGL.UNSIGNED_INT_VEC3:
-                    UniformClass = PicoGL.UintVec3Uniform;
+                    UniformClass = arrayType ? PicoGL.UintVec3ArrayUniform : PicoGL.UintVec3Uniform;
                     break;
                 case PicoGL.UNSIGNED_INT_VEC4:
-                    UniformClass = PicoGL.UintVec4Uniform;
+                    UniformClass = arrayType ? PicoGL.UintVec4ArrayUniform : PicoGL.UintVec4Uniform;
                     break;
                 case PicoGL.BOOL_VEC2:
-                    UniformClass = PicoGL.BoolVec2Uniform;
+                    UniformClass = arrayType ? PicoGL.BoolVec2ArrayUniform : PicoGL.BoolVec2Uniform;
                     break;
                 case PicoGL.BOOL_VEC3:
-                    UniformClass = PicoGL.BoolVec3Uniform;
+                    UniformClass = arrayType ? PicoGL.BoolVec3ArrayUniform : PicoGL.BoolVec3Uniform;
                     break;
                 case PicoGL.BOOL_VEC4:
-                    UniformClass = PicoGL.BoolVec4Uniform;
+                    UniformClass = arrayType ? PicoGL.BoolVec4ArrayUniform : PicoGL.BoolVec4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT2:
-                    UniformClass = PicoGL.Mat2Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat2ArrayUniform : PicoGL.Mat2Uniform;
                     break;
                 case PicoGL.FLOAT_MAT3:
-                    UniformClass = PicoGL.Mat3Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat3ArrayUniform : PicoGL.Mat3Uniform;
                     break;
                 case PicoGL.FLOAT_MAT4:
-                    UniformClass = PicoGL.Mat4Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat4ArrayUniform : PicoGL.Mat4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT2x3:
-                    UniformClass = PicoGL.Mat2x3Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat2x3ArrayUniform : PicoGL.Mat2x3Uniform;
                     break;
                 case PicoGL.FLOAT_MAT2x4:
-                    UniformClass = PicoGL.Mat2x4Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat2x4ArrayUniform : PicoGL.Mat2x4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT3x2:
-                    UniformClass = PicoGL.Mat3x2Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat3x2ArrayUniform : PicoGL.Mat3x2Uniform;
                     break;
                 case PicoGL.FLOAT_MAT3x4:
-                    UniformClass = PicoGL.Mat3x4Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat3x4ArrayUniform : PicoGL.Mat3x4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT4x2:
-                    UniformClass = PicoGL.Mat4x2Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat4x2ArrayUniform : PicoGL.Mat4x2Uniform;
                     break;
                 case PicoGL.FLOAT_MAT4x3:
-                    UniformClass = PicoGL.Mat4x3Uniform;
+                    UniformClass = arrayType ? PicoGL.Mat4x3ArrayUniform : PicoGL.Mat4x3Uniform;
                     break;
                 default:
                     console.error("Unrecognized type for uniform ", uniformInfo.name);
                     break;
             }
 
-            this.uniforms[uniformInfo.name] = new UniformClass(gl, uniformHandle);
+            if (arrayType) {
+                // Strip "[0]" from the type name for more intuitive usage
+                var simpleName = uniformInfo.name.substring(0, uniformInfo.name.length - 3);
+                this.uniforms[simpleName] = new UniformClass(gl, uniformHandle, uniformInfo.size);
+            } else {
+                this.uniforms[uniformInfo.name] = new UniformClass(gl, uniformHandle);
+            }
         }
 
         var numUniformBlocks = gl.getProgramParameter(program, gl.ACTIVE_UNIFORM_BLOCKS);
@@ -1169,11 +1177,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         for (var i = 0; i < numColumns; ++i) {
             this.gl.vertexAttribPointer(
-                attributeIndex + i,
-                vertexBuffer.itemSize,
-                vertexBuffer.type,
-                false,
-                numColumns * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type],
+                attributeIndex + i, 
+                vertexBuffer.itemSize, 
+                vertexBuffer.type, 
+                false, 
+                numColumns * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type], 
                 i * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type]);
 
             if (instanced) {
@@ -1182,13 +1190,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
             this.gl.enableVertexAttribArray(attributeIndex + i);
         }
-
+        
         this.instanced = this.instanced || instanced;
 
         if (instanced) {
-            this.numInstances = vertexBuffer.numItems;
+            this.numInstances = vertexBuffer.numItems; 
         } else {
-            this.numElements = this.numElements || vertexBuffer.numItems;
+            this.numElements = this.numElements || vertexBuffer.numItems; 
         }
 
         this.gl.bindVertexArray(null);
@@ -1244,7 +1252,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.deleteTransformFeedback(this.transformFeedback);
             this.transformFeedback = null;
         }
-    };
+    }; 
 
     // Bind this transform feedback.
     PicoGL.TransformFeedback.prototype.bind = function() {
@@ -1362,7 +1370,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     PicoGL.VertexBuffer.prototype.delete = function() {
         if (this.buffer) {
             this.gl.deleteBuffer(this.buffer);
-            this.buffer = null;
+            this.buffer = null;    
         }
     };
 
@@ -1372,7 +1380,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     // Classes to manage uniform value updates, including
     // caching current values.
-
     PicoGL.FloatUniform = function FloatUniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1384,6 +1391,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniform1f(this.handle, value);
             this.cache = value;
         }
+    };
+
+    PicoGL.FloatArrayUniform = function FloatArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.FloatArrayUniform.prototype.set = function(value) {
+        this.gl.uniform1fv(this.handle, value);
     };
 
     PicoGL.IntUniform = function IntUniform(gl, handle) {
@@ -1399,6 +1416,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.IntArrayUniform = function IntArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.IntArrayUniform.prototype.set = function(value) {
+        this.gl.uniform1iv(this.handle, value);
+    };
+
     PicoGL.UintUniform = function UintUniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1410,6 +1437,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniform1ui(this.handle, value);
             this.cache = value;
         }
+    };
+
+    PicoGL.UintArrayUniform = function UintArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.UintArrayUniform.prototype.set = function(value) {
+        this.gl.uniform1uiv(this.handle, value);
     };
 
     PicoGL.Vec2Uniform = function Vec2Uniform(gl, handle) {
@@ -1424,6 +1461,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniform2fv(this.handle, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Vec2ArrayUniform = function Vec2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Vec2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform2fv(this.handle, value);
     };
 
     PicoGL.Vec3Uniform = function Vec3Uniform(gl, handle) {
@@ -1441,6 +1488,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.Vec3ArrayUniform = function Vec3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Vec3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform3fv(this.handle, value);
+    };
+
     PicoGL.Vec4Uniform = function Vec4Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1448,13 +1505,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     PicoGL.Vec4Uniform.prototype.set = function(value) {
-        /*if (this.cache[0] !== value[0] ||
+        if (this.cache[0] !== value[0] ||
             this.cache[1] !== value[1] ||
             this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3]) {*/
+            this.cache[3] !== value[3]) {
             this.gl.uniform4fv(this.handle, value);
-            //this.cache.set(value);
-        //}
+            this.cache.set(value);
+        }
+    };
+
+    PicoGL.Vec4ArrayUniform = function Vec4ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Vec4ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform4fv(this.handle, value);
     };
 
     PicoGL.IntVec2Uniform = function IntVec2Uniform(gl, handle) {
@@ -1471,6 +1538,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.IntVec2ArrayUniform = function IntVec2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.IntVec2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform2iv(this.handle, value);
+    };
+
     PicoGL.IntVec3Uniform = function IntVec3Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1484,6 +1561,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniform3iv(this.handle, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.IntVec3ArrayUniform = function IntVec3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.IntVec3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform3iv(this.handle, value);
     };
 
     PicoGL.IntVec4Uniform = function IntVec4Uniform(gl, handle) {
@@ -1502,6 +1589,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.IntVec4ArrayUniform = function IntVec4ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.IntVec4ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform4iv(this.handle, value);
+    };
+
     PicoGL.UintVec2Uniform = function UintVec2Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1514,6 +1611,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniform2uiv(this.handle, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.UintVec2ArrayUniform = function UintVec2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.UintVec2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform2uiv(this.handle, value);
     };
 
     PicoGL.UintVec3Uniform = function UintVec3Uniform(gl, handle) {
@@ -1529,6 +1636,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniform3uiv(this.handle, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.UintVec3ArrayUniform = function UintVec3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.UintVec3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform3uiv(this.handle, value);
     };
 
     PicoGL.UintVec4Uniform = function UintVec4Uniform(gl, handle) {
@@ -1547,6 +1664,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.UintVec4ArrayUniform = function UintVec4ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.UintVec4ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform4uiv(this.handle, value);
+    };
+
     PicoGL.BoolVec2Uniform = function BoolVec2Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1560,6 +1687,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.cache[0] = value[0];
             this.cache[1] = value[1];
         }
+    };
+
+    PicoGL.BoolVec2ArrayUniform = function BoolVec2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.BoolVec2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform2iv(this.handle, value);
     };
 
     PicoGL.BoolVec3Uniform = function BoolVec3Uniform(gl, handle) {
@@ -1577,6 +1714,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.cache[1] = value[1];
             this.cache[2] = value[2];
         }
+    };
+
+    PicoGL.BoolVec3ArrayUniform = function BoolVec3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.BoolVec3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform3iv(this.handle, value);
     };
 
     PicoGL.BoolVec4Uniform = function BoolVec4Uniform(gl, handle) {
@@ -1598,6 +1745,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.BoolVec3ArrayUniform = function BoolVec3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.BoolVec3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniform3iv(this.handle, value);
+    };
+
     PicoGL.Mat2Uniform = function Mat2Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1612,6 +1769,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniformMatrix2fv(this.handle, false, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Mat2ArrayUniform = function Mat2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix2fv(this.handle, false, value);
     };
 
     PicoGL.Mat3Uniform = function Mat3Uniform(gl, handle) {
@@ -1633,6 +1800,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniformMatrix3fv(this.handle, false, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Mat3ArrayUniform = function Mat3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix3fv(this.handle, false, value);
     };
 
     PicoGL.Mat4Uniform = function Mat4Uniform(gl, handle) {
@@ -1663,6 +1840,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.Mat4ArrayUniform = function Mat4ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat4ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix4fv(this.handle, false, value);
+    };
+
     PicoGL.Mat2x3Uniform = function Mat2x3Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1679,6 +1866,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniformMatrix2x3fv(this.handle, false, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Mat2x3ArrayUniform = function Mat2x3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat2x3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix2x3fv(this.handle, false, value);
     };
 
     PicoGL.Mat2x4Uniform = function Mat2x4Uniform(gl, handle) {
@@ -1701,6 +1898,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.Mat2x4ArrayUniform = function Mat2x4ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat2x4ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix2x4fv(this.handle, false, value);
+    };
+
     PicoGL.Mat3x2Uniform = function Mat3x2Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1717,6 +1924,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniformMatrix3x2fv(this.handle, false, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Mat3x2ArrayUniform = function Mat3x2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat3x2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix3x2fv(this.handle, false, value);
     };
 
     PicoGL.Mat3x4Uniform = function Mat3x4Uniform(gl, handle) {
@@ -1743,6 +1960,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
+    PicoGL.Mat3x4ArrayUniform = function Mat3x4ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat3x4ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix3x4fv(this.handle, false, value);
+    };
+
     PicoGL.Mat4x2Uniform = function Mat4x2Uniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1761,6 +1988,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniformMatrix4x2fv(this.handle, false, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Mat4x2ArrayUniform = function Mat4x2ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat4x2ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix4x2fv(this.handle, false, value);
     };
 
     PicoGL.Mat4x3Uniform = function Mat4x3Uniform(gl, handle) {
@@ -1785,6 +2022,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.uniformMatrix4x3fv(this.handle, false, value);
             this.cache.set(value);
         }
+    };
+
+    PicoGL.Mat4x3ArrayUniform = function Mat4x3ArrayUniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+    };
+
+    PicoGL.Mat4x3ArrayUniform.prototype.set = function(value) {
+        this.gl.uniformMatrix4x3fv(this.handle, false, value);
     };
 
 })();
@@ -1817,7 +2064,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         for (var i = 0, len = layout.length; i < len; ++i) {
             var type = layout[i];
-            switch(type) {
+            switch(type) { 
                 case PicoGL.FLOAT:
                 case PicoGL.INT:
                 case PicoGL.UNSIGNED_INT:
@@ -1842,7 +2089,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                     this.size += this.size % 2;
                     this.offsets[i] = this.size;
                     this.sizes[i] = 2;
-
+                    
                     if (type === PicoGL.INT_VEC2) {
                         this.types[i] = PicoGL.INT;
                     } else if (this.type === PicoGL.UNSIGNED_INT_VEC2) {
@@ -1864,7 +2111,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                     this.size += (4 - this.size % 4) % 4;
                     this.offsets[i] = this.size;
                     this.sizes[i] = 4;
-
+                    
                     if (type === PicoGL.INT_VEC4 || type === PicoGL.INT_VEC3) {
                         this.types[i] = PicoGL.INT;
                     } else if (this.type === PicoGL.UNSIGNED_INT_VEC4 || this.type === PicoGL.UNSIGNED_INT_VEC3) {
@@ -1923,7 +2170,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     /**
-        Update data for a given item in the buffer. NOTE: Data is not
+        Update data for a given item in the buffer. NOTE: Data is not 
         sent the the GPU until the update() method is called!
 
         @method
@@ -1938,7 +2185,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         } else {
             view.set(value, this.offsets[index]);
         }
-
+        
         return this;
     };
 
@@ -2066,7 +2313,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.flipY = options.flipY !== undefined ? options.flipY : true;
         this.baseLevel = options.baseLevel !== undefined ? options.baseLevel : null;
         this.maxLevel = options.maxLevel !== undefined ? options.maxLevel : null;
-        this.generateMipmaps = options.generateMipmaps !== false &&
+        this.generateMipmaps = options.generateMipmaps !== false && 
                             (minFilter === gl.LINEAR_MIPMAP_NEAREST || minFilter === gl.LINEAR_MIPMAP_LINEAR);
 
         this.bind(true);
@@ -2076,7 +2323,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     /**
         Set the image data for the texture.
-
+    
         @method
         @param {ImageElement|ArrayBufferView} image Image data.
         @param {number} [width] Image width. Required when passing ArrayBufferView data.
@@ -2114,7 +2361,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
 
         return this;
-    };
+    };  
 
     /**
         Delete this texture.
@@ -2132,12 +2379,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.unit = -1;
             this.unitEnum = -1;
         }
-    };
+    }; 
 
     // Initialize storage
     PicoGL.Texture.prototype.allocateStorage = function() {
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, this.flipY);
-
+        
         if (this.baseLevel !== null) {
             this.gl.texParameteri(this.binding, this.gl.TEXTURE_BASE_LEVEL, this.baseLevel);
         }
@@ -2169,9 +2416,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.activeTexture(this.unitEnum);
             this.appState.activeTexture = this.unit;
         }
-
+        
         return this;
-    };
+    }; 
 
     // Bind this texture to a texture unit.
     PicoGL.Texture.prototype.bind = function(force) {
@@ -2180,9 +2427,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.bindTexture(this.binding, this.texture);
             this.appState.textures[this.unit] = this;
         }
-
+        
         return this;
-    };
+    };   
 
 })();
 ;(function() {
@@ -2231,7 +2478,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         var posY = options.posY;
         var negZ = options.negZ;
         var posZ = options.posZ;
-
+        
         var width = options.width || negX.width;
         var height = options.height || negX.height;
         var flipY = options.flipY !== undefined ? options.flipY : false;
@@ -2239,7 +2486,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         var magFilter = options.magFilter !== undefined ? options.magFilter : gl.LINEAR;
         var compareMode = options.compareMode !== undefined ? options.compareMode : gl.NONE;
         var compareFunc = options.compareFunc !== undefined ? options.compareFunc : gl.LEQUAL;
-        var generateMipmaps = options.generateMipmaps !== false &&
+        var generateMipmaps = options.generateMipmaps !== false && 
                             (minFilter === gl.LINEAR_MIPMAP_NEAREST || minFilter === gl.LINEAR_MIPMAP_LINEAR);
 
         this.bind();
@@ -2260,7 +2507,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         if (options.maxLOD !== undefined) {
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAX_LOD, options.maxLOD);
         }
-
+        
         var levels = generateMipmaps ? Math.floor(Math.log2(Math.min(width, height))) + 1 : 1;
         gl.texStorage2D(gl.TEXTURE_CUBE_MAP, levels, this.internalFormat, width, height);
 
@@ -2291,7 +2538,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.unit = -1;
             this.unitEnum = -1;
         }
-    };
+    }; 
 
     // Bind this cubemap to a texture unit.
     PicoGL.Cubemap.prototype.bind = function() {
@@ -2299,13 +2546,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl.activeTexture(this.unitEnum);
             this.appState.activeTexture = this.unit;
         }
-        if (this.appState.textures[this.unit] !== this) {
+        if (this.appState.textures[this.unit] !== this) {  
             this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.texture);
             this.appState.textures[this.unit] = this;
         }
-
+        
         return this;
-    };
+    };   
 
 })();
 ;(function() {
@@ -2319,10 +2566,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @prop {WebGLFramebuffer} framebuffer Handle to the framebuffer.
         @prop {number} width The width of the framebuffer.
         @prop {number} height The height of the framebuffer.
-        @prop {Array} colorTextures Array of color texture targets.
-        @prop {number} numColorTargets Number of color texture targets.
-        @prop {Texture} depthTexture Depth texture target.
-        @prop {Array} colorAttachments Array of color attachment enums.
+        @prop {Array} colorTextures Array of color texture targets. 
+        @prop {number} numColorTargets Number of color texture targets. 
+        @prop {Texture} depthTexture Depth texture target. 
+        @prop {Array} colorAttachments Array of color attachment enums. 
         @prop {Object} appState Tracked GL state.
     */
     PicoGL.Framebuffer = function Framebuffer(gl, appState, width, height) {
@@ -2343,7 +2590,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.colorTextures = [];
         this.colorAttachments = [];
         this.depthTexture = null;
-    };
+    }; 
 
     /**
         Add a color target to this framebuffer.
@@ -2361,7 +2608,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.wrapT=CLAMP_TO_EDGE] Vertical wrap mode.
         @param {GLEnum} [options.compareMode=NONE] Comparison mode.
         @param {GLEnum} [options.compareFunc=LEQUAL] Comparison function.
-        @param {GLEnum} [options.baseLevel] Base mipmap level.
+        @param {GLEnum} [options.baseLevel] Base mipmap level. 
         @param {GLEnum} [options.maxLevel] Maximum mipmap level.
         @param {GLEnum} [options.minLOD] Mimimum level of detail.
         @param {GLEnum} [options.maxLOD] Maximum level of detail.
@@ -2380,16 +2627,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         options.generateMipmaps = options.generateMipmaps === undefined ? false : options.generateMipmaps;
 
         this.colorAttachments[index] = this.gl.COLOR_ATTACHMENT0 + index;
-
+        
         var currentFramebuffer = this.bindAndCaptureState();
 
         this.colorTextures[index] = new PicoGL.Texture(
             this.gl,
             this.appState,
             this.gl.TEXTURE_2D,
-            null,
-            this.width,
-            this.height,
+            null, 
+            this.width, 
+            this.height, 
             null,
             false,
             options
@@ -2419,7 +2666,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.wrapT=CLAMP_TO_EDGE] Vertical wrap mode.
         @param {GLEnum} [options.compareMode=NONE] Comparison mode.
         @param {GLEnum} [options.compareFunc=LEQUAL] Comparison function.
-        @param {GLEnum} [options.baseLevel] Base mipmap level.
+        @param {GLEnum} [options.baseLevel] Base mipmap level. 
         @param {GLEnum} [options.maxLevel] Maximum mipmap level.
         @param {GLEnum} [options.minLOD] Mimimum level of detail.
         @param {GLEnum} [options.maxLOD] Maximum level of detail.
@@ -2442,9 +2689,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.gl,
             this.appState,
             this.gl.TEXTURE_2D,
-            null,
-            this.width,
-            this.height,
+            null, 
+            this.width, 
+            this.height, 
             null,
             false,
             options
@@ -2453,7 +2700,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.gl.framebufferTexture2D(this.gl.DRAW_FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.TEXTURE_2D, this.depthTexture.texture, 0);
 
         this.restoreState(currentFramebuffer);
-
+        
         return this;
     };
 
@@ -2470,7 +2717,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         var currentFramebuffer = this.bindAndCaptureState();
         this.gl.framebufferTexture2D(this.gl.DRAW_FRAMEBUFFER, this.colorAttachments[index], this.gl.TEXTURE_2D, this.colorTextures[index].texture, 0);
         this.restoreState(currentFramebuffer);
-
+      
         return this;
     };
 
@@ -2505,7 +2752,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
 
         this.restoreState(currentFramebuffer);
-
+      
         return this;
     };
 
@@ -2538,7 +2785,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
     };
 
-    // Bind as the read framebuffer
+    // Bind as the read framebuffer 
     PicoGL.Framebuffer.prototype.bindForRead = function() {
         if (this.appState.readFramebuffer !== this) {
             this.gl.bindFramebuffer(this.gl.READ_FRAMEBUFFER, this.framebuffer);
@@ -2550,7 +2797,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     // Capture current binding so we can restore it later.
     PicoGL.Framebuffer.prototype.bindAndCaptureState = function() {
         var currentFramebuffer = this.appState.drawFramebuffer;
-
+        
         if (currentFramebuffer !== this) {
             this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, this.framebuffer);
         }
@@ -2559,7 +2806,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     // Bind restore previous binding after state update
-    PicoGL.Framebuffer.prototype.restoreState = function(framebuffer) {
+    PicoGL.Framebuffer.prototype.restoreState = function(framebuffer) {        
         if (framebuffer !== this) {
             this.gl.bindFramebuffer(this.gl.DRAW_FRAMEBUFFER, framebuffer ? framebuffer.framebuffer : null);
         }
@@ -2587,15 +2834,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @prop {Array} uniformValue Ordered list of uniform values.
         @prop {number} uniformCount The number of active uniforms for this draw call.
         @prop {Array} textures Array of active textures.
-        @prop {number} textureCount The number of active textures for this draw call.
-        @prop {GLEnum} primitive The primitive type being drawn.
+        @prop {number} textureCount The number of active textures for this draw call. 
+        @prop {GLEnum} primitive The primitive type being drawn. 
     */
     PicoGL.DrawCall = function DrawCall(gl, program, vertexArray, primitive) {
         this.gl = gl;
         this.currentProgram = program;
         this.currentVertexArray = vertexArray;
-        this.currentTransformFeedback = null;
-
+        this.currentTransformFeedback = null;    
+        
         this.uniformIndices = {};
         this.uniformNames = new Array(PicoGL.WEBGL_INFO.MAX_UNIFORMS);
         this.uniformValues = new Array(PicoGL.WEBGL_INFO.MAX_UNIFORMS);
@@ -2611,7 +2858,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     PicoGL.DrawCall.prototype.transformFeedback = function(transformFeedback) {
-        this.currentTransformFeedback = transformFeedback;
+        this.currentTransformFeedback = transformFeedback;    
 
         return this;
     };
@@ -2648,10 +2895,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             textureIndex = this.textureCount++;
             this.samplerIndices[name] = textureIndex;
         }
-
+        
         this.uniform(name, texture.unit);
         this.textures[textureIndex] = texture;
-
+        
         return this;
     };
 
@@ -2669,9 +2916,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             this.uniformBlockBases[name] = base;
             this.uniformBlockNames[base] = name;
         }
-
+        
         this.uniformBuffers[base] = buffer;
-
+        
         return this;
     };
 
@@ -2750,10 +2997,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @class
         @prop {WebGLRenderingContext} gl The WebGL context.
         @prop {Object} cpuTimer Timer for CPU. Will be window.performance, if available, or window.Date.
-        @prop {boolean} gpuTimer Whether the gpu timing is available (EXT_disjoint_timer_query_webgl2 or
+        @prop {boolean} gpuTimer Whether the gpu timing is available (EXT_disjoint_timer_query_webgl2 or 
                 EXT_disjoint_timer_query are supported).
-        @prop {WebGLQuery} gpuTimerQuery Timer query object for GPU (if gpu timing is supported).
-        @prop {boolean} gpuTimerQueryInProgress Whether a gpu timer query is currently in progress.
+        @prop {WebGLQuery} gpuTimerQuery Timer query object for GPU (if gpu timing is supported). 
+        @prop {boolean} gpuTimerQueryInProgress Whether a gpu timer query is currently in progress.    
         @prop {number} cpuStartTime When the last CPU timing started.
         @prop {number} cpuTime Time spent on the CPU during the last timing. Only valid if App.timerReady() returns true.
         @prop {number} gpuTime Time spent on the GPU during the last timing. Only valid if App.timerReady() returns true.
@@ -2809,7 +3056,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     // Check if the rendering time is available. If
     // this method returns true, the cpuTime and
-    // gpuTime properties will be set to valid
+    // gpuTime properties will be set to valid 
     // values.
     PicoGL.Timer.prototype.ready = function() {
         if (this.gpuTimer) {

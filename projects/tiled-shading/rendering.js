@@ -18,7 +18,6 @@ var cubeVA;
 var cubes = [];
 
 var lights = [];
-//var lightsBuffer;
 
 var modelMatrixData;
 var modelMatrixBuffer;
@@ -87,6 +86,26 @@ function setupScene() {
 	modelMatrixData = new Float32Array(numCubes * 16 /* floats */);
 	modelMatrixBuffer = app.createMatrixBuffer(PicoGL.FLOAT_MAT4, modelMatrixData);
 
+	// Setup cubes
+	for (var i = 0; i < numCubes; i++) {
+		cubes.push({
+			position: randomPositionInScene(),
+			rotationX: randomAngle(),
+			rotationY: randomAngle(),
+			rotationZ: randomAngle(),
+			// Creates a view into the buffer so no copying has to occur
+			modelMatrix: new Float32Array(modelMatrixData.buffer, i * 16 * 4, 16)
+		});
+	}
+
+	// Setup lights
+	for (var i = 0; i < numLights; i++) {
+		lights.push({
+			position: randomPositionInScene(),
+			color: randomColor()
+		});
+	}
+
 	OBJ.downloadMeshes({
 		'cube': '../assets/cube.obj'
 	}, function(meshes) {
@@ -108,39 +127,32 @@ function setupScene() {
 		forwardOnePassDrawCall = app.createDrawCall(forwardOnePassShader, cubeVA);
 
 		// Setup initial/constant uniforms (TODO: use constant buffers!)
-
-		var lightPosData = [], lightColorData = [];
+		var lightPosData = new Float32Array(numLights * 4);
+		var lightColorData = new Float32Array(numLights * 4);
+		var compIndex = 0;
 		for (var light of lights) {
+
 			var p = light.position;
-			lightPosData.push(vec4.fromValues(p[0], p[1], p[2], 0.0));
+			lightPosData[compIndex + 0] = p[0];
+			lightPosData[compIndex + 1] = p[1];
+			lightPosData[compIndex + 2] = p[2];
+			lightPosData[compIndex + 3] = p[3];
 
 			var c = light.color;
-			lightColorData.push(vec4.fromValues(c[0], c[1], c[2], 0.0));
+			lightColorData[compIndex + 0] = c[0];
+			lightColorData[compIndex + 1] = c[1];
+			lightColorData[compIndex + 2] = c[2];
+			lightColorData[compIndex + 3] = c[3];
+
+			compIndex += 4;
 		}
 
-		forwardOnePassDrawCall.uniform('pos[0]', new Float32Array(lightPosData));
-		forwardOnePassDrawCall.uniform('color[0]', new Float32Array(lightColorData));
+		forwardOnePassDrawCall.uniform('pos', lightPosData);
+		forwardOnePassDrawCall.uniform('color', lightColorData);
 		forwardOnePassDrawCall.uniform('numLights', numLights);
 
 	});
 
-	for (var i = 0; i < numCubes; i++) {
-		cubes.push({
-			position: randomPositionInScene(),
-			rotationX: randomAngle(),
-			rotationY: randomAngle(),
-			rotationZ: randomAngle(),
-			// Creates a view into the buffer so no copying has to occur
-			modelMatrix: new Float32Array(modelMatrixData.buffer, i * 16 * 4, 16)
-		});
-	}
-
-	for (var i = 0; i < numLights; i++) {
-		lights.push({
-			position: randomPositionInScene(),
-			color: randomColor()
-		});
-	}
 }
 
 function makeShader(name) {
@@ -241,30 +253,6 @@ function onRender() {
 
 		case 'forward-one-pass':
 		{
-			var lightPosData = new Float32Array(numLights * 4);
-			var lightColorData = new Float32Array(numLights * 4);
-			var compIndex = 0;
-			for (var light of lights) {
-
-				var p = light.position;
-				lightPosData[compIndex + 0] = p[0];
-				lightPosData[compIndex + 1] = p[1];
-				lightPosData[compIndex + 2] = p[2];
-				lightPosData[compIndex + 3] = p[3];
-
-				var c = light.color;
-				lightColorData[compIndex + 0] = c[0];
-				lightColorData[compIndex + 1] = c[1];
-				lightColorData[compIndex + 2] = c[2];
-				lightColorData[compIndex + 3] = c[3];
-
-				compIndex += 4;
-			}
-
-			forwardOnePassDrawCall.uniform('pos[0]', lightPosData);
-			forwardOnePassDrawCall.uniform('color[0]', lightColorData);
-			forwardOnePassDrawCall.uniform('numLights', numLights);
-
 			app.depthTest().depthFunc(PicoGL.LEQUAL);
 
 			forwardAmbientDrawCall.uniform('viewProjection', camera.viewProjection);
