@@ -12,12 +12,13 @@ var renderMode = 'forward';
 
 var sceneSize = 20.0;
 var numCubes = 400;
-var numLights = 100;
+var numLights = 200;
 
 var cubeVA;
 var cubes = [];
 
 var lights = [];
+var lightRadius = 6.0;
 
 var modelMatrixData;
 var modelMatrixBuffer;
@@ -156,6 +157,9 @@ function setupScene() {
 		forwardOnePassDrawCall.uniform('pos', lightPosData);
 		forwardOnePassDrawCall.uniform('color', lightColorData);
 		forwardOnePassDrawCall.uniform('numLights', numLights);
+
+		forwardDrawCall.uniform('lightRadius', lightRadius);
+		forwardOnePassDrawCall.uniform('lightRadius', lightRadius);
 
 	});
 

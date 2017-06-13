@@ -68,13 +68,14 @@
 				smooth in vec3 worldNormal;
 				uniform vec3 lightPos; // world space
 				uniform vec3 lightColor;
+				uniform float lightRadius;
 				out vec4 fragColor;
 				void main() {
 					vec3 toLight = lightPos - worldPos;
-					float distSquared = dot(toLight, toLight);
-					float atten = 1.0 / distSquared * 6.0;
+					float distance = length(toLight);
+					float atten = smoothstep(lightRadius, 0.0, distance) / lightRadius; // finite radius attenuation
 					float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
-					vec3 color = lightColor * intensity * atten;
+					vec3 color = lightColor * intensity * atten * 25.0;
 					fragColor = vec4(color, 1);
 				}
 			</script>
@@ -110,6 +111,7 @@
 					uniform vec4 pos[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
 					uniform vec4 color[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
 					uniform int numLights;
+					uniform float lightRadius;
 				//};
 
 				out vec4 fragColor;
@@ -125,10 +127,10 @@
 						light.color = color[i];
 
 						vec3 toLight = light.pos.xyz - worldPos;
-						float distSquared = dot(toLight, toLight);
-						float atten = 1.0 / distSquared * 6.0;
+						float distance = length(toLight);
+						float atten = smoothstep(lightRadius, 0.0, distance) / lightRadius; // finite radius attenuation
 						float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
-						vec3 color = light.color.rgb * intensity * atten;
+						vec3 color = light.color.rgb * intensity * atten * 25.0;
 						accumulatedColor += color;
 					}
 
