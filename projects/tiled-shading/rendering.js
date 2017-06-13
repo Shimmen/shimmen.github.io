@@ -1,7 +1,7 @@
 
 var app;
 
-var frameTimeElem;
+var cpuTimeElem, gpuTimeElem;
 var lastTime = new Date().getTime();
 
 ////////////////////////////////////////////////////
@@ -44,7 +44,8 @@ function onSetup(canvas) {
 	setupScene();
 
 	// Save DOM references
-	frameTimeElem = document.getElementById('frame-time-display');
+	cpuTimeElem = document.getElementById('cpu-time-display');
+	gpuTimeElem = document.getElementById('gpu-time-display');
 }
 
 function onResize(width, height) {
@@ -61,8 +62,13 @@ function renderModeChanged(selected) {
 }
 
 function updateFrameTimeLabel(timeMs) {
-	if (frameTimeElem) {
-		frameTimeElem.innerHTML = 'Frame time: ' + timeMs + ' ms';
+	if (app.timerReady()) {
+		cpuTimeElem.innerHTML = 'CPU time: ' + app.cpuTime.toFixed(3) + ' ms';
+		if (app.gpuTime > 0) {
+			gpuTimeElem.innerHTML = 'GPU time: ' + app.gpuTime.toFixed(3) + ' ms';
+		} else {
+			gpuTimeElem.innerHTML = 'GPU time: not available!';
+		}
 	}
 }
 
@@ -195,7 +201,8 @@ function onRender() {
 	var deltaMs = currentTime - lastTime;
 	var delta = deltaMs / 1000.0;
 	lastTime = currentTime;
-	updateFrameTimeLabel(deltaMs);
+
+	updateFrameTimeLabel();
 
 	app.clearColor(0, 0, 0, 1).clear();
 
@@ -230,6 +237,9 @@ function onRender() {
 	// Update model matrix instance data
 	modelMatrixBuffer.data(modelMatrixData);
 
+	// Only time the part of rendering that is unique for the different modes
+	app.timerStart();
+
 	switch (renderMode) {
 		case 'forward':
 		{
@@ -262,6 +272,7 @@ function onRender() {
 			forwardOnePassDrawCall.uniform('viewProjection', camera.viewProjection);
 			app.drawCalls([forwardOnePassDrawCall]);
 			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE);
+			app.depthFunc(PicoGL.EQUAL);
 			app.draw();
 		}
 		break;
@@ -272,4 +283,6 @@ function onRender() {
 		}
 		break;
 	}
+
+	app.timerEnd();
 }

@@ -23,7 +23,8 @@
 			<canvas id="canvas"></canvas>
 			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
 			<div>
-				<p id="frame-time-display"></p>
+				<p style="margin-bottom: 0;" id="cpu-time-display">CPU time</p>
+				<p id="gpu-time-display">GPU time</p>
 				<div><input type="radio" name="renderMode" value="forward" onclick="renderModeChanged(this)" checked="checked"/> Forward Rendering (one pass per light)</div>
 				<div><input type="radio" name="renderMode" value="forward-one-pass" onclick="renderModeChanged(this)"/> Forward Rendering (one pass for all lights)</div>
 				<div><input type="radio" name="renderMode" value="tiled-shading" onclick="renderModeChanged(this)"/> Tiled Shading</div>
@@ -40,10 +41,10 @@
 			</script>
 			<script type="x-shader/x-fragment" id="forward-ambient-fs">
 				#version 300 es
-				precision mediump float;
+				precision highp float;
 				out vec4 fragColor;
 				void main() {
-					fragColor = vec4(vec3(0.35), 1.0);
+					fragColor = vec4(vec3(0.10), 1.0);
 				}
 			</script>
 			<script type="x-shader/x-vertex" id="forward-vs">
@@ -62,7 +63,7 @@
 			</script>
 			<script type="x-shader/x-fragment" id="forward-fs">
 				#version 300 es
-				precision mediump float;
+				precision highp float;
 				smooth in vec3 worldPos;
 				smooth in vec3 worldNormal;
 				uniform vec3 lightPos; // world space
