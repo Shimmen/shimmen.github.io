@@ -100,37 +100,26 @@
 				smooth in vec3 worldPos;
 				smooth in vec3 worldNormal;
 
-				struct Light {
-					vec4 pos; // world space (x,y,z), w=padding
-					vec4 color; // (r,g,b), a=padding
-				};
-
 				const int MAX_NUM_LIGHTS = 500;
 				layout(std140) uniform LightsBlock
 				{
-					vec4 pos[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
-					vec4 color[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
+					vec4 lightPosition[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
+					vec4 lightColor[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
 					int numLights;
 					float lightRadius;
 				};
 
 				out vec4 fragColor;
 				void main() {
-
 					vec3 accumulatedColor = vec3(0, 0, 0);
-					Light light;
-
 					int numActiveLights = min(numLights, MAX_NUM_LIGHTS);
+
 					for (int i = 0; i < numActiveLights; i++) {
-
-						light.pos = pos[i];
-						light.color = color[i];
-
-						vec3 toLight = light.pos.xyz - worldPos;
+						vec3 toLight = lightPosition[i].xyz - worldPos;
 						float distance = length(toLight);
 						float atten = smoothstep(lightRadius, 0.0, distance) / lightRadius; // finite radius attenuation
 						float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
-						vec3 color = light.color.rgb * intensity * atten * 25.0;
+						vec3 color = lightColor[i].rgb * intensity * atten * 25.0;
 						accumulatedColor += color;
 					}
 

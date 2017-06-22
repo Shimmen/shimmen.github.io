@@ -25,6 +25,7 @@ var modelMatrixBuffer;
 
 var camera = {
 	aspectRatio: 16.0 / 9.0,
+	position: vec3.create(),
 	viewMatrix: mat4.create(),
 	projection: mat4.create(),
 	viewProjection: mat4.create()
@@ -97,8 +98,8 @@ function updateFrameTimeLabel(timeMs) {
 ////////////////////////////////////////////////////
 
 function setupCamera(aspectRatio) {
-	var cameraPos = vec3.fromValues(0.0, 0.0, 2.0 * sceneSize);
-	mat4.lookAt(camera.viewMatrix, cameraPos, vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
+	camera.position = vec3.fromValues(0.0, 0.0, sceneSize + 10.0);
+	mat4.lookAt(camera.viewMatrix, camera.position, vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
 	mat4.perspective(camera.projection, Math.PI / 2.0, aspectRatio, 0.5, 100);
 	mat4.multiply(camera.viewProjection, camera.projection, camera.viewMatrix);
 	camera.aspectRatio = aspectRatio;
@@ -203,7 +204,7 @@ function randomAngle() {
 }
 function randomPositionInScene() {
 	return vec3.fromValues(
-		randomInRange(-sceneSize * camera.aspectRatio, sceneSize * camera.aspectRatio),
+		randomInRange(-sceneSize, sceneSize),
 		randomInRange(-sceneSize, sceneSize),
 		randomInRange(-sceneSize, sceneSize)
 	);
@@ -232,6 +233,11 @@ function onRender() {
 	if (!cubeVA) {
 		return;
 	}
+
+	// Rotate camera around scene
+	vec3.rotateY(camera.position, camera.position, vec3.fromValues(0, 0, 0), delta / 10.0);
+	mat4.lookAt(camera.viewMatrix, camera.position, vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
+	mat4.multiply(camera.viewProjection, camera.projection, camera.viewMatrix);
 
 	var rotXmatrix = mat4.create();
 	var rotYmatrix = mat4.create();
