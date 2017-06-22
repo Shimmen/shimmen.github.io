@@ -30,11 +30,30 @@ var camera = {
 	viewProjection: mat4.create()
 };
 
-var forwardShader, forwardAmbientShader;
+var ambientShader;
+var ambientDrawCall;
+
+///////////////////// Forward //////////////////////
+
+var forwardShader;
 var forwardDrawCall;
+
+///////////////// Forward one-pass /////////////////
 
 var forwardOnePassShader;
 var forwardOnePassDrawCall;
+
+/////////////////// Tiled shading //////////////////
+
+var gridColumns = 16;
+var gridRows = 16;
+
+var lightGrid = [];
+
+// For every grid cell a list of affecting lights
+for (var i = 0; i < gridRows * gridColumns; i++) {
+	lightGrid[i] = [];
+}
 
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
@@ -85,8 +104,8 @@ function setupCamera(aspectRatio) {
 
 function setupScene() {
 	// Setup shaders
+	ambientShader = makeShader('ambient');
 	forwardShader = makeShader('forward');
-	forwardAmbientShader = makeShader('forward-ambient');
 	forwardOnePassShader = makeShader('forward-one-pass');
 
 	// Set up buffer for storing the model matrices for the instanced cubes
@@ -129,8 +148,8 @@ function setupScene() {
 		.indexBuffer(indices);
 
 		// Create draw calls
+		ambientDrawCall = app.createDrawCall(ambientShader, cubeVA);
 		forwardDrawCall = app.createDrawCall(forwardShader, cubeVA);
-		forwardAmbientDrawCall = app.createDrawCall(forwardAmbientShader, cubeVA);
 		forwardOnePassDrawCall = app.createDrawCall(forwardOnePassShader, cubeVA);
 
 		// Setup initial/constant uniforms (TODO: use constant buffers!)
@@ -248,9 +267,8 @@ function onRender() {
 		case 'forward':
 		{
 			app.depthTest().depthFunc(PicoGL.LEQUAL);
-
-			forwardAmbientDrawCall.uniform('viewProjection', camera.viewProjection);
-			app.drawCalls([forwardAmbientDrawCall]);
+			ambientDrawCall.uniform('viewProjection', camera.viewProjection);
+			app.drawCalls([ambientDrawCall]);
 			app.noBlend().draw();
 
 			forwardDrawCall.uniform('viewProjection', camera.viewProjection);
@@ -268,9 +286,8 @@ function onRender() {
 		case 'forward-one-pass':
 		{
 			app.depthTest().depthFunc(PicoGL.LEQUAL);
-
-			forwardAmbientDrawCall.uniform('viewProjection', camera.viewProjection);
-			app.drawCalls([forwardAmbientDrawCall]);
+			ambientDrawCall.uniform('viewProjection', camera.viewProjection);
+			app.drawCalls([ambientDrawCall]);
 			app.noBlend().draw();
 
 			forwardOnePassDrawCall.uniform('viewProjection', camera.viewProjection);
@@ -283,6 +300,56 @@ function onRender() {
 
 		case 'tiled-shading':
 		{
+/*
+			// TODO: Implement!
+
+			// Group lights into the light grid cells (assuming that the scene nor camera
+			// is static this has to be done every frame like this)
+			var lightIndexListLength = 0;
+			for (var lightIndex = 0; lightIndex < lights.length; lightIndex++) {
+				var light = lights[lightIndex];
+
+				var pos = light.position;
+				var p = vec4.fromValues(pos[0], pos[1], pos[2], 1.0);
+				vec4.transformMat4(p, p, camera.viewProjection);
+				vec4.scale(p, p, 1.0 / p[3]); // perspective divide
+
+				// grid-space from now on: x:[0, gridColumns) y:[0, gridRows)
+				var gridX = (p[0] * 0.5 + 0.5) * gridColumns;
+				var gridY = (p[1] * 0.5 + 0.5) * gridRows;
+
+				// TODO: We now know the center point of the sphere in grid-space. However, we want to cover all area
+				// of the sphere so we have to loop through all of the potential grid cells and check if it is covered
+				// by the light. If a light covers a grid cell we add lightIndex to the grid cell and increment the
+				// lightIndexListLength so that we can create the index list later.
+
+				var gridSpaceRadius = lightRadius;// ??? TODO Implement this somehow!
+
+				for (var yy = -gridSpaceRadius; yy < gridSpaceRadius; yy += 1.0) {
+					for (var xx = -gridSpaceRadius; xx < gridSpaceRadius; xx += 1.0) {
+						// TODO: Now we are effectively selecting all cells in a square but in many cases this will
+						// include some corner cells that isn't actually covered by the light. For optimal efficiency
+						// of the techiniqe we need to not include these.
+
+						var x = Math.floor(gridX + xx);
+						var y = Math.floor(gridY + yy);
+
+						var index = y * gridColumns + x;
+						lightGrid[index].push(lightIndex);
+						lightIndexListLength += 1;
+					}
+				}
+			}
+*/
+			// TODO: Create GPU buffers for the lightGrid and upload it as:
+			// light grid - array of vec2(index, length) into the light grid indices list
+			// light grid indices - essentially what the lightGrid JS 2D array is now but flattened
+
+			app.depthTest().depthFunc(PicoGL.LEQUAL);
+			ambientDrawCall.uniform('viewProjection', camera.viewProjection);
+			app.drawCalls([ambientDrawCall]);
+			app.noBlend().draw();
+
 			// TODO: Implement!
 		}
 		break;

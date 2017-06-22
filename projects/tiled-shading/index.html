@@ -30,7 +30,7 @@
 				<div><input type="radio" name="renderMode" value="tiled-shading" onclick="renderModeChanged(this)"/> Tiled Shading</div>
 			</div>
 
-			<script type="x-shader/x-vertex" id="forward-ambient-vs">
+			<script type="x-shader/x-vertex" id="ambient-vs">
 				#version 300 es
 				layout(location = 0) in vec3 position;
 				layout(location = 2) in mat4 modelMatrix;
@@ -39,7 +39,7 @@
 					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
 				}
 			</script>
-			<script type="x-shader/x-fragment" id="forward-ambient-fs">
+			<script type="x-shader/x-fragment" id="ambient-fs">
 				#version 300 es
 				precision highp float;
 				out vec4 fragColor;
