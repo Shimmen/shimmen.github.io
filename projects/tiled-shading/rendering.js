@@ -43,6 +43,8 @@ var forwardDrawCall;
 var forwardOnePassShader;
 var forwardOnePassDrawCall;
 
+var lightsUniformBuffer;
+
 /////////////////// Tiled shading //////////////////
 
 var gridColumns = 16;
@@ -152,33 +154,30 @@ function setupScene() {
 		forwardDrawCall = app.createDrawCall(forwardShader, cubeVA);
 		forwardOnePassDrawCall = app.createDrawCall(forwardOnePassShader, cubeVA);
 
-		// Setup initial/constant uniforms (TODO: use constant buffers!)
-		var lightPosData = new Float32Array(numLights * 4);
-		var lightColorData = new Float32Array(numLights * 4);
-		var compIndex = 0;
-		for (var light of lights) {
+		//
+		// Setup initial/constant uniforms
+		//
 
-			var p = light.position;
-			lightPosData[compIndex + 0] = p[0];
-			lightPosData[compIndex + 1] = p[1];
-			lightPosData[compIndex + 2] = p[2];
-			lightPosData[compIndex + 3] = p[3];
-
-			var c = light.color;
-			lightColorData[compIndex + 0] = c[0];
-			lightColorData[compIndex + 1] = c[1];
-			lightColorData[compIndex + 2] = c[2];
-			lightColorData[compIndex + 3] = c[3];
-
-			compIndex += 4;
-		}
-
-		forwardOnePassDrawCall.uniform('pos', lightPosData);
-		forwardOnePassDrawCall.uniform('color', lightColorData);
-		forwardOnePassDrawCall.uniform('numLights', numLights);
-
+		// Default forward
 		forwardDrawCall.uniform('lightRadius', lightRadius);
-		forwardOnePassDrawCall.uniform('lightRadius', lightRadius);
+
+		// One pass forward
+		var lightsLayout = new Array(1002);
+		for (var i = 0; i < 1000; ++i) { lightsLayout[i] = PicoGL.FLOAT_VEC4; }
+		lightsLayout[1000] = PicoGL.INT;
+		lightsLayout[1001] = PicoGL.FLOAT;
+		lightsUniformBuffer = app.createUniformBuffer(lightsLayout);
+
+		for (var i = 0; i < numLights; i++) { lightsUniformBuffer.set(i, lights[i].position); }
+		for (var i = 0; i < numLights; i++) { lightsUniformBuffer.set(500 + i, lights[i].color); }
+		lightsUniformBuffer.set(1000, numLights);
+		lightsUniformBuffer.set(1001, lightRadius);
+		lightsUniformBuffer.update();
+
+		forwardOnePassDrawCall.uniformBlock('LightsBlock', lightsUniformBuffer);
+
+		// Tiled shading
+		// TODO: Set up at least the radius!
 
 	});
 
@@ -293,7 +292,7 @@ function onRender() {
 			forwardOnePassDrawCall.uniform('viewProjection', camera.viewProjection);
 			app.drawCalls([forwardOnePassDrawCall]);
 			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE);
-			app.depthFunc(PicoGL.EQUAL);
+			app.depthFunc(PicoGL.EQUAL); // ambient acts as z-prepass
 			app.draw();
 		}
 		break;

@@ -106,13 +106,13 @@
 				};
 
 				const int MAX_NUM_LIGHTS = 500;
-				//layout(std140) uniform LightBlock
-				//{
-					uniform vec4 pos[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
-					uniform vec4 color[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
-					uniform int numLights;
-					uniform float lightRadius;
-				//};
+				layout(std140) uniform LightsBlock
+				{
+					vec4 pos[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
+					vec4 color[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
+					int numLights;
+					float lightRadius;
+				};
 
 				out vec4 fragColor;
 				void main() {
