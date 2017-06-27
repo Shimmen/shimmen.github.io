@@ -47,6 +47,7 @@
 					fragColor = vec4(vec3(0.10), 1.0);
 				}
 			</script>
+
 			<script type="x-shader/x-vertex" id="forward-vs">
 				#version 300 es
 				layout(location = 0) in vec3 position;
@@ -120,6 +121,76 @@
 						float atten = smoothstep(lightRadius, 0.0, distance) / lightRadius; // finite radius attenuation
 						float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
 						vec3 color = lightColor[i].rgb * intensity * atten * 25.0;
+						accumulatedColor += color;
+					}
+
+					fragColor = vec4(accumulatedColor, 1.0);
+				}
+			</script>
+
+			<script type="x-shader/x-vertex" id="tiled-vs">
+				#version 300 es
+				layout(location = 0) in vec3 position;
+				layout(location = 1) in vec3 normal;
+				layout(location = 2) in mat4 modelMatrix;
+				uniform mat4 viewProjection;
+				smooth out vec3 worldPos;
+				smooth out vec3 worldNormal;
+				void main() {
+					worldNormal = mat3(modelMatrix) * normal; // assumes no separate xyz-scaling!
+					worldPos = vec3(modelMatrix * vec4(position, 1.0));
+					gl_Position = viewProjection * modelMatrix * vec4(position, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="tiled-fs">
+				#version 300 es
+				precision highp float;
+				precision mediump isampler2D;
+				smooth in vec3 worldPos;
+				smooth in vec3 worldNormal;
+
+				const int MAX_NUM_LIGHTS = 500;
+				layout(std140) uniform LightsBlock
+				{
+					vec4 lightPosition[MAX_NUM_LIGHTS]; // world space (x,y,z), w=padding
+					vec4 lightColor[MAX_NUM_LIGHTS]; // (r,g,b), a=padding
+					int numLights;
+					float lightRadius;
+				};
+
+				// TODO: Make into uniforms!
+
+				uniform ivec2 gridCount;// = ivec2(16, 16);
+				uniform ivec2 screenSize;// = ivec2(850, 478);
+				uniform ivec2 gridCellSize;// = screenSize / gridCount;
+
+				const int GRID_X = 1;
+				const int GRID_Y = 1;
+				int GRID_CELL_DIM_X = int(850.0 / float(GRID_X));
+				int GRID_CELL_DIM_Y = int(478.0 / float(GRID_Y));
+
+				uniform ivec2 lightGrid[GRID_X * GRID_Y];
+				uniform isampler2D lightGridIndicesTex;
+
+				out vec4 fragColor;
+				void main() {
+					vec3 accumulatedColor = vec3(0, 0, 0);
+
+					ivec2 fragPos = ivec2(gl_FragCoord.xy);
+					ivec2 l = ivec2(fragPos.x / GRID_CELL_DIM_X, fragPos.y / GRID_CELL_DIM_X);
+					ivec2 gridCell = lightGrid[l.x + l.y * GRID_X];
+					int offset = gridCell.x;
+					int count = gridCell.y;
+
+					for (int i = 0; i < count; i++) {
+						float sampleTexel = float(offset + i) / float(textureSize(lightGridIndicesTex, 0).x);
+						int lightId = texture(lightGridIndicesTex, vec2(sampleTexel + 0.5, 0.5)).x;
+
+						vec3 toLight = lightPosition[lightId].xyz - worldPos;
+						float distance = length(toLight);
+						float atten = smoothstep(lightRadius, 0.0, distance) / lightRadius; // finite radius attenuation
+						float intensity = max(0.0, dot(normalize(worldNormal), normalize(toLight)));
+						vec3 color = lightColor[lightId].rgb * intensity * atten * 25.0;
 						accumulatedColor += color;
 					}
 

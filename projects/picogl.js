@@ -1,5 +1,5 @@
 /*
-PicoGL.js v0.3.2 
+PicoGL.js v0.3.4 
 
 The MIT License (MIT)
 
@@ -36,7 +36,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @prop {object} WEBGL_INFO WebGL context information.
     */
     var PicoGL = window.PicoGL = {
-        version: "0.3.2"
+        version: "0.3.4"
     };
 
     (function() {
@@ -623,7 +623,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.type=UNSIGNED_BYTE] Type of data stored in the texture.
         @param {GLEnum} [options.format=RGBA] Texture data format.
         @param {GLEnum} [options.internalFormat=RGBA] Texture data internal format.
-        @param {boolean} [options.flipY=true] Whether the y-axis be flipped when unpacking the texture.
+        @param {boolean} [options.flipY=false] Whether the y-axis be flipped when unpacking the texture.
         @param {GLEnum} [options.minFilter=LINEAR_MIPMAP_NEAREST] Minification filter.
         @param {GLEnum} [options.magFilter=LINEAR] Magnification filter.
         @param {GLEnum} [options.wrapS=REPEAT] Horizontal wrap mode.
@@ -659,7 +659,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.type=UNSIGNED_BYTE] Type of data stored in the texture.
         @param {GLEnum} [options.format=RGBA] Texture data format.
         @param {GLEnum} [options.internalFormat=RGBA] Texture data internal format.
-        @param {boolean} [options.flipY=true] Whether the y-axis be flipped when unpacking the texture.
+        @param {boolean} [options.flipY=false] Whether the y-axis be flipped when unpacking the texture.
         @param {GLEnum} [options.minFilter=LINEAR_MIPMAP_NEAREST] Minification filter.
         @param {GLEnum} [options.magFilter=LINEAR] Magnification filter.
         @param {GLEnum} [options.wrapS=REPEAT] Horizontal wrap mode.
@@ -688,7 +688,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         @param {GLEnum} [options.type=UNSIGNED_BYTE] Type of data stored in the texture.
         @param {GLEnum} [options.format=RGBA] Texture data format.
         @param {GLEnum} [options.internalFormat=RGBA] Texture data internal format.
-        @param {boolean} [options.flipY=true] Whether the y-axis be flipped when unpacking the texture.
+        @param {boolean} [options.flipY=false] Whether the y-axis be flipped when unpacking the texture.
         @param {GLEnum} [options.minFilter=LINEAR_MIPMAP_NEAREST] Minification filter.
         @param {GLEnum} [options.magFilter=LINEAR] Magnification filter.
         @param {GLEnum} [options.wrapS=REPEAT] Horizontal wrap mode.
@@ -891,12 +891,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             var uniformInfo = gl.getActiveUniform(program, i);
             var uniformHandle = gl.getUniformLocation(this.program, uniformInfo.name);
             var UniformClass = null;
-
-            var arrayType = uniformInfo.size > 1;
+            var elementCount = uniformInfo.size;
 
             switch (uniformInfo.type) {
-                case PicoGL.INT:
                 case PicoGL.BOOL:
+                    UniformClass = elementCount > 1 ? PicoGL.BoolArrayUniform : PicoGL.IntUniform;
+                    break;
+                case PicoGL.INT:
                 case PicoGL.SAMPLER_2D:
                 case PicoGL.INT_SAMPLER_2D:
                 case PicoGL.UNSIGNED_INT_SAMPLER_2D:
@@ -912,89 +913,83 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 case PicoGL.SAMPLER_3D:
                 case PicoGL.INT_SAMPLER_3D:
                 case PicoGL.UNSIGNED_INT_SAMPLER_3D:
-                    UniformClass = arrayType ? PicoGL.IntArrayUniform : PicoGL.IntUniform;
+                    UniformClass = elementCount > 1 ? PicoGL.IntArrayUniform : PicoGL.IntUniform;
                     break;
                 case PicoGL.UNSIGNED_INT:
-                    UniformClass = arrayType ? PicoGL.UintArrayUniform : PicoGL.UintUniform;
+                    UniformClass = elementCount > 1 ? PicoGL.UintArrayUniform : PicoGL.UintUniform;
                     break;
                 case PicoGL.FLOAT:
-                    UniformClass = arrayType ? PicoGL.FloatArrayUniform : PicoGL.FloatUniform;
+                    UniformClass = elementCount > 1 ? PicoGL.FloatArrayUniform : PicoGL.FloatUniform;
                     break;
                 case PicoGL.FLOAT_VEC2:
-                    UniformClass = arrayType ? PicoGL.Vec2ArrayUniform : PicoGL.Vec2Uniform;
+                    UniformClass = PicoGL.Vec2Uniform;
                     break;
                 case PicoGL.FLOAT_VEC3:
-                    UniformClass = arrayType ? PicoGL.Vec3ArrayUniform : PicoGL.Vec3Uniform;
+                    UniformClass = PicoGL.Vec3Uniform;
                     break;
                 case PicoGL.FLOAT_VEC4:
-                    UniformClass = arrayType ? PicoGL.Vec4ArrayUniform : PicoGL.Vec4Uniform;
+                    UniformClass = PicoGL.Vec4Uniform;
                     break;
                 case PicoGL.INT_VEC2:
-                    UniformClass = arrayType ? PicoGL.IntVec2ArrayUniform : PicoGL.IntVec2Uniform;
+                    UniformClass = PicoGL.IntVec2Uniform;
                     break;
                 case PicoGL.INT_VEC3:
-                    UniformClass = arrayType ? PicoGL.IntVec3ArrayUniform : PicoGL.IntVec3Uniform;
+                    UniformClass = PicoGL.IntVec3Uniform;
                     break;
                 case PicoGL.INT_VEC4:
-                    UniformClass = arrayType ? PicoGL.IntVec4ArrayUniform : PicoGL.IntVec4Uniform;
+                    UniformClass = PicoGL.IntVec4Uniform;
                     break;
                 case PicoGL.UNSIGNED_INT_VEC2:
-                    UniformClass = arrayType ? PicoGL.UintVec2ArrayUniform : PicoGL.UintVec2Uniform;
+                    UniformClass = PicoGL.UintVec2Uniform;
                     break;
                 case PicoGL.UNSIGNED_INT_VEC3:
-                    UniformClass = arrayType ? PicoGL.UintVec3ArrayUniform : PicoGL.UintVec3Uniform;
+                    UniformClass = PicoGL.UintVec3Uniform;
                     break;
                 case PicoGL.UNSIGNED_INT_VEC4:
-                    UniformClass = arrayType ? PicoGL.UintVec4ArrayUniform : PicoGL.UintVec4Uniform;
+                    UniformClass = PicoGL.UintVec4Uniform;
                     break;
                 case PicoGL.BOOL_VEC2:
-                    UniformClass = arrayType ? PicoGL.BoolVec2ArrayUniform : PicoGL.BoolVec2Uniform;
+                    UniformClass = PicoGL.BoolVec2Uniform;
                     break;
                 case PicoGL.BOOL_VEC3:
-                    UniformClass = arrayType ? PicoGL.BoolVec3ArrayUniform : PicoGL.BoolVec3Uniform;
+                    UniformClass = PicoGL.BoolVec3Uniform;
                     break;
                 case PicoGL.BOOL_VEC4:
-                    UniformClass = arrayType ? PicoGL.BoolVec4ArrayUniform : PicoGL.BoolVec4Uniform;
+                    UniformClass = PicoGL.BoolVec4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT2:
-                    UniformClass = arrayType ? PicoGL.Mat2ArrayUniform : PicoGL.Mat2Uniform;
+                    UniformClass = PicoGL.Mat2Uniform;
                     break;
                 case PicoGL.FLOAT_MAT3:
-                    UniformClass = arrayType ? PicoGL.Mat3ArrayUniform : PicoGL.Mat3Uniform;
+                    UniformClass = PicoGL.Mat3Uniform;
                     break;
                 case PicoGL.FLOAT_MAT4:
-                    UniformClass = arrayType ? PicoGL.Mat4ArrayUniform : PicoGL.Mat4Uniform;
+                    UniformClass = PicoGL.Mat4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT2x3:
-                    UniformClass = arrayType ? PicoGL.Mat2x3ArrayUniform : PicoGL.Mat2x3Uniform;
+                    UniformClass = PicoGL.Mat2x3Uniform;
                     break;
                 case PicoGL.FLOAT_MAT2x4:
-                    UniformClass = arrayType ? PicoGL.Mat2x4ArrayUniform : PicoGL.Mat2x4Uniform;
+                    UniformClass = PicoGL.Mat2x4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT3x2:
-                    UniformClass = arrayType ? PicoGL.Mat3x2ArrayUniform : PicoGL.Mat3x2Uniform;
+                    UniformClass = PicoGL.Mat3x2Uniform;
                     break;
                 case PicoGL.FLOAT_MAT3x4:
-                    UniformClass = arrayType ? PicoGL.Mat3x4ArrayUniform : PicoGL.Mat3x4Uniform;
+                    UniformClass = PicoGL.Mat3x4Uniform;
                     break;
                 case PicoGL.FLOAT_MAT4x2:
-                    UniformClass = arrayType ? PicoGL.Mat4x2ArrayUniform : PicoGL.Mat4x2Uniform;
+                    UniformClass = PicoGL.Mat4x2Uniform;
                     break;
                 case PicoGL.FLOAT_MAT4x3:
-                    UniformClass = arrayType ? PicoGL.Mat4x3ArrayUniform : PicoGL.Mat4x3Uniform;
+                    UniformClass = PicoGL.Mat4x3Uniform;
                     break;
                 default:
                     console.error("Unrecognized type for uniform ", uniformInfo.name);
                     break;
             }
 
-            if (arrayType) {
-                // Strip "[0]" from the type name for more intuitive usage
-                var simpleName = uniformInfo.name.substring(0, uniformInfo.name.length - 3);
-                this.uniforms[simpleName] = new UniformClass(gl, uniformHandle, uniformInfo.size);
-            } else {
-                this.uniforms[uniformInfo.name] = new UniformClass(gl, uniformHandle);
-            }
+            this.uniforms[uniformInfo.name] = new UniformClass(gl, uniformHandle, elementCount);
         }
 
         var numUniformBlocks = gl.getProgramParameter(program, gl.ACTIVE_UNIFORM_BLOCKS);
@@ -1034,7 +1029,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
 })();
-
 ;(function() {
     "use strict";
 
@@ -1176,14 +1170,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         var numColumns = vertexBuffer.numColumns;
 
         for (var i = 0; i < numColumns; ++i) {
-            this.gl.vertexAttribPointer(
-                attributeIndex + i, 
-                vertexBuffer.itemSize, 
-                vertexBuffer.type, 
-                false, 
-                numColumns * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type], 
-                i * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type]);
-
+            if (vertexBuffer.type === this.gl.FLOAT) {
+                this.gl.vertexAttribPointer(
+                    attributeIndex + i, 
+                    vertexBuffer.itemSize, 
+                    vertexBuffer.type, 
+                    false, 
+                    numColumns * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type], 
+                    i * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type]);
+            } else {
+                this.gl.vertexAttribIPointer(
+                    attributeIndex + i, 
+                    vertexBuffer.itemSize, 
+                    vertexBuffer.type, 
+                    numColumns * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type], 
+                    i * vertexBuffer.itemSize * PicoGL.TYPE_SIZE[vertexBuffer.type]);
+            }
+            
             if (instanced) {
                 this.gl.vertexAttribDivisor(attributeIndex + i, 1);
             }
@@ -1380,6 +1383,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     // Classes to manage uniform value updates, including
     // caching current values.
+
     PicoGL.FloatUniform = function FloatUniform(gl, handle) {
         this.gl = gl;
         this.handle = handle;
@@ -1397,10 +1401,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.gl = gl;
         this.handle = handle;
         this.count = count;
+        this.cache = new Float32Array(count);
     };
 
     PicoGL.FloatArrayUniform.prototype.set = function(value) {
-        this.gl.uniform1fv(this.handle, value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform1fv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
+        }
     };
 
     PicoGL.IntUniform = function IntUniform(gl, handle) {
@@ -1420,10 +1431,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.gl = gl;
         this.handle = handle;
         this.count = count;
+        this.cache = new Int32Array(count);
     };
 
     PicoGL.IntArrayUniform.prototype.set = function(value) {
-        this.gl.uniform1iv(this.handle, value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform1iv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
+        }
     };
 
     PicoGL.UintUniform = function UintUniform(gl, handle) {
@@ -1443,595 +1461,403 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.gl = gl;
         this.handle = handle;
         this.count = count;
+        this.cache = new Uint32Array(count);
     };
 
     PicoGL.UintArrayUniform.prototype.set = function(value) {
-        this.gl.uniform1uiv(this.handle, value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform1uiv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
+        }
     };
 
-    PicoGL.Vec2Uniform = function Vec2Uniform(gl, handle) {
+    PicoGL.BoolArrayUniform = function BoolArrayUniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
-        this.cache = new Float32Array(2);
+        this.count = count;
+        this.cache = new Array(count).fill(false);
+    };
+
+    PicoGL.BoolArrayUniform.prototype.set = function(value) {
+        var len = value.length;
+        for (var i = 0; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform1iv(this.handle, value);
+                for (var j = i; j < len; j++) {
+                    this.cache[j] = value[j];
+                }
+                return;
+            }
+        }
+    };
+
+    PicoGL.Vec2Uniform = function Vec2Uniform(gl, handle, count) {
+        this.gl = gl;
+        this.handle = handle;
+        this.count = count;
+        this.cache = new Float32Array(2 * count);
     };
 
     PicoGL.Vec2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1]) {
-            this.gl.uniform2fv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform2fv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Vec2ArrayUniform = function Vec2ArrayUniform(gl, handle, count) {
+    PicoGL.Vec3Uniform = function Vec3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Vec2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform2fv(this.handle, value);
-    };
-
-    PicoGL.Vec3Uniform = function Vec3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(3);
+        this.cache = new Float32Array(3 * count);
     };
 
     PicoGL.Vec3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2]) {
-            this.gl.uniform3fv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform3fv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Vec3ArrayUniform = function Vec3ArrayUniform(gl, handle, count) {
+    PicoGL.Vec4Uniform = function Vec4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Vec3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform3fv(this.handle, value);
-    };
-
-    PicoGL.Vec4Uniform = function Vec4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(4);
+        this.cache = new Float32Array(4 * count);
     };
 
     PicoGL.Vec4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3]) {
-            this.gl.uniform4fv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform4fv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Vec4ArrayUniform = function Vec4ArrayUniform(gl, handle, count) {
+    PicoGL.IntVec2Uniform = function IntVec2Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Vec4ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform4fv(this.handle, value);
-    };
-
-    PicoGL.IntVec2Uniform = function IntVec2Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Int32Array(2);
+        this.cache = new Int32Array(2 * count);
     };
 
     PicoGL.IntVec2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1]) {
-            this.gl.uniform2iv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform2iv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.IntVec2ArrayUniform = function IntVec2ArrayUniform(gl, handle, count) {
+    PicoGL.IntVec3Uniform = function IntVec3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.IntVec2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform2iv(this.handle, value);
-    };
-
-    PicoGL.IntVec3Uniform = function IntVec3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Int32Array(3);
+        this.cache = new Int32Array(3 * count);
     };
 
     PicoGL.IntVec3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2]) {
-            this.gl.uniform3iv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform3iv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.IntVec3ArrayUniform = function IntVec3ArrayUniform(gl, handle, count) {
+    PicoGL.IntVec4Uniform = function IntVec4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.IntVec3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform3iv(this.handle, value);
-    };
-
-    PicoGL.IntVec4Uniform = function IntVec4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Int32Array(4);
+        this.cache = new Int32Array(4 * count);
     };
 
     PicoGL.IntVec4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3]) {
-            this.gl.uniform4iv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform4iv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.IntVec4ArrayUniform = function IntVec4ArrayUniform(gl, handle, count) {
+    PicoGL.UintVec2Uniform = function UintVec2Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.IntVec4ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform4iv(this.handle, value);
-    };
-
-    PicoGL.UintVec2Uniform = function UintVec2Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Uint32Array(2);
+        this.cache = new Uint32Array(2 * count);
     };
 
     PicoGL.UintVec2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1]) {
-            this.gl.uniform2uiv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform2uiv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.UintVec2ArrayUniform = function UintVec2ArrayUniform(gl, handle, count) {
+    PicoGL.UintVec3Uniform = function UintVec3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.UintVec2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform2uiv(this.handle, value);
-    };
-
-    PicoGL.UintVec3Uniform = function UintVec3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Uint32Array(3);
+        this.cache = new Uint32Array(3 * count);
     };
 
     PicoGL.UintVec3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2]) {
-            this.gl.uniform3uiv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform3uiv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.UintVec3ArrayUniform = function UintVec3ArrayUniform(gl, handle, count) {
+    PicoGL.UintVec4Uniform = function UintVec4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.UintVec3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform3uiv(this.handle, value);
-    };
-
-    PicoGL.UintVec4Uniform = function UintVec4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Uint32Array(4);
+        this.cache = new Uint32Array(4 * count);
     };
 
     PicoGL.UintVec4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3]) {
-            this.gl.uniform4uiv(this.handle, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform4uiv(this.handle, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.UintVec4ArrayUniform = function UintVec4ArrayUniform(gl, handle, count) {
+    PicoGL.BoolVec2Uniform = function BoolVec2Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.UintVec4ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform4uiv(this.handle, value);
-    };
-
-    PicoGL.BoolVec2Uniform = function BoolVec2Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = [false, false];
+        this.cache = new Array(2 * count).fill(false);
     };
 
     PicoGL.BoolVec2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1]) {
-            this.gl.uniform2iv(this.handle, value);
-            this.cache[0] = value[0];
-            this.cache[1] = value[1];
+        var len = value.length;
+        for (var i = 0; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform2iv(this.handle, value);
+                for (var j = i; j < len; j++) {
+                    this.cache[j] = value[j];
+                }
+                return;
+            }
         }
     };
 
-    PicoGL.BoolVec2ArrayUniform = function BoolVec2ArrayUniform(gl, handle, count) {
+    PicoGL.BoolVec3Uniform = function BoolVec3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.BoolVec2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform2iv(this.handle, value);
-    };
-
-    PicoGL.BoolVec3Uniform = function BoolVec3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = [false, false, false];
+        this.cache = new Array(3 * count).fill(false);
     };
 
     PicoGL.BoolVec3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2]) {
-            this.gl.uniform3iv(this.handle, value);
-            this.cache[0] = value[0];
-            this.cache[1] = value[1];
-            this.cache[2] = value[2];
+        var len = value.length;
+        for (var i = 0; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform3iv(this.handle, value);
+                for (var j = i; j < len; j++) {
+                    this.cache[j] = value[j];
+                }
+                return;
+            }
         }
     };
 
-    PicoGL.BoolVec3ArrayUniform = function BoolVec3ArrayUniform(gl, handle, count) {
+    PicoGL.BoolVec4Uniform = function BoolVec4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.BoolVec3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform3iv(this.handle, value);
-    };
-
-    PicoGL.BoolVec4Uniform = function BoolVec4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = [false, false, false, false];
+        this.cache = new Array(4 * count).fill(false);
     };
 
     PicoGL.BoolVec4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3]) {
-            this.gl.uniform4iv(this.handle, value);
-            this.cache[0] = value[0];
-            this.cache[1] = value[1];
-            this.cache[2] = value[2];
-            this.cache[3] = value[3];
+        var len = value.length;
+        for (var i = 0; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniform4iv(this.handle, value);
+                for (var j = i; j < len; j++) {
+                    this.cache[j] = value[j];
+                }
+                return;
+            }
         }
     };
 
-    PicoGL.BoolVec3ArrayUniform = function BoolVec3ArrayUniform(gl, handle, count) {
+    PicoGL.Mat2Uniform = function Mat2Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.BoolVec3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniform3iv(this.handle, value);
-    };
-
-    PicoGL.Mat2Uniform = function Mat2Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(4);
+        this.cache = new Float32Array(4 * count);
     };
 
     PicoGL.Mat2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3]) {
-            this.gl.uniformMatrix2fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix2fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat2ArrayUniform = function Mat2ArrayUniform(gl, handle, count) {
+    PicoGL.Mat3Uniform = function Mat3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix2fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat3Uniform = function Mat3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(9);
+        this.cache = new Float32Array(9 * count);
     };
 
     PicoGL.Mat3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5] ||
-            this.cache[6] !== value[6] ||
-            this.cache[7] !== value[7] ||
-            this.cache[8] !== value[8]) {
-            this.gl.uniformMatrix3fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix3fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat3ArrayUniform = function Mat3ArrayUniform(gl, handle, count) {
+    PicoGL.Mat4Uniform = function Mat4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix3fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat4Uniform = function Mat4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(16);
+        this.cache = new Float32Array(16 * count);
     };
 
     PicoGL.Mat4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5] ||
-            this.cache[6] !== value[6] ||
-            this.cache[7] !== value[7] ||
-            this.cache[8] !== value[8] ||
-            this.cache[9] !== value[9] ||
-            this.cache[10] !== value[10] ||
-            this.cache[11] !== value[11] ||
-            this.cache[12] !== value[12] ||
-            this.cache[13] !== value[13] ||
-            this.cache[14] !== value[14] ||
-            this.cache[15] !== value[15]) {
-            this.gl.uniformMatrix4fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix4fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat4ArrayUniform = function Mat4ArrayUniform(gl, handle, count) {
+    PicoGL.Mat2x3Uniform = function Mat2x3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat4ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix4fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat2x3Uniform = function Mat2x3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(6);
+        this.cache = new Float32Array(6 * count);
     };
 
     PicoGL.Mat2x3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5]) {
-            this.gl.uniformMatrix2x3fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix2x3fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat2x3ArrayUniform = function Mat2x3ArrayUniform(gl, handle, count) {
+    PicoGL.Mat2x4Uniform = function Mat2x4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat2x3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix2x3fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat2x4Uniform = function Mat2x4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(8);
+        this.cache = new Float32Array(8 * count);
     };
 
     PicoGL.Mat2x4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5] ||
-            this.cache[6] !== value[6] ||
-            this.cache[7] !== value[7]) {
-            this.gl.uniformMatrix2x4fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix2x4fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat2x4ArrayUniform = function Mat2x4ArrayUniform(gl, handle, count) {
+    PicoGL.Mat3x2Uniform = function Mat3x2Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat2x4ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix2x4fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat3x2Uniform = function Mat3x2Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(6);
+        this.cache = new Float32Array(6 * count);
     };
 
     PicoGL.Mat3x2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5]) {
-            this.gl.uniformMatrix3x2fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix3x2fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat3x2ArrayUniform = function Mat3x2ArrayUniform(gl, handle, count) {
+    PicoGL.Mat3x4Uniform = function Mat3x4Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat3x2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix3x2fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat3x4Uniform = function Mat3x4Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(12);
+        this.cache = new Float32Array(12 * count);
     };
 
     PicoGL.Mat3x4Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5] ||
-            this.cache[6] !== value[6] ||
-            this.cache[7] !== value[7] ||
-            this.cache[8] !== value[8] ||
-            this.cache[9] !== value[9] ||
-            this.cache[10] !== value[10] ||
-            this.cache[11] !== value[11]) {
-            this.gl.uniformMatrix3x4fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix3x4fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat3x4ArrayUniform = function Mat3x4ArrayUniform(gl, handle, count) {
+    PicoGL.Mat4x2Uniform = function Mat4x2Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat3x4ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix3x4fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat4x2Uniform = function Mat4x2Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(8);
+        this.cache = new Float32Array(8 * count);
     };
 
     PicoGL.Mat4x2Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5] ||
-            this.cache[6] !== value[6] ||
-            this.cache[7] !== value[7]) {
-            this.gl.uniformMatrix4x2fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix4x2fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
     };
 
-    PicoGL.Mat4x2ArrayUniform = function Mat4x2ArrayUniform(gl, handle, count) {
+    PicoGL.Mat4x3Uniform = function Mat4x3Uniform(gl, handle, count) {
         this.gl = gl;
         this.handle = handle;
         this.count = count;
-    };
-
-    PicoGL.Mat4x2ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix4x2fv(this.handle, false, value);
-    };
-
-    PicoGL.Mat4x3Uniform = function Mat4x3Uniform(gl, handle) {
-        this.gl = gl;
-        this.handle = handle;
-        this.cache = new Float32Array(12);
+        this.cache = new Float32Array(12 * count);
     };
 
     PicoGL.Mat4x3Uniform.prototype.set = function(value) {
-        if (this.cache[0] !== value[0] ||
-            this.cache[1] !== value[1] ||
-            this.cache[2] !== value[2] ||
-            this.cache[3] !== value[3] ||
-            this.cache[4] !== value[4] ||
-            this.cache[5] !== value[5] ||
-            this.cache[6] !== value[6] ||
-            this.cache[7] !== value[7] ||
-            this.cache[8] !== value[8] ||
-            this.cache[9] !== value[9] ||
-            this.cache[10] !== value[10] ||
-            this.cache[11] !== value[11]) {
-            this.gl.uniformMatrix4x3fv(this.handle, false, value);
-            this.cache.set(value);
+        for (var i = 0, len = value.length; i < len; i++) {
+            if (this.cache[i] !== value[i]) {
+                this.gl.uniformMatrix4x3fv(this.handle, false, value);
+                this.cache.set(value);
+                return;
+            }
         }
-    };
-
-    PicoGL.Mat4x3ArrayUniform = function Mat4x3ArrayUniform(gl, handle, count) {
-        this.gl = gl;
-        this.handle = handle;
-        this.count = count;
-    };
-
-    PicoGL.Mat4x3ArrayUniform.prototype.set = function(value) {
-        this.gl.uniformMatrix4x3fv(this.handle, false, value);
     };
 
 })();
@@ -2310,7 +2136,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
 
         // Texture parameters
-        this.flipY = options.flipY !== undefined ? options.flipY : true;
+        this.flipY = options.flipY !== undefined ? options.flipY : false;
         this.baseLevel = options.baseLevel !== undefined ? options.baseLevel : null;
         this.maxLevel = options.maxLevel !== undefined ? options.maxLevel : null;
         this.generateMipmaps = options.generateMipmaps !== false && 
@@ -2864,7 +2690,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     };
 
     /**
-        Set the value for a uniform.
+        Set the value for a uniform. Array uniforms are supported by
+        using appending "[0]" to the array name and passing a flat array
+        with all required values.
 
         @method
         @param {string} name Uniform name.

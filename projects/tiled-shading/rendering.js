@@ -25,6 +25,7 @@ var modelMatrixBuffer;
 
 var camera = {
 	aspectRatio: 16.0 / 9.0,
+	fovY: Math.PI / 2.0,
 	position: vec3.create(),
 	viewMatrix: mat4.create(),
 	projection: mat4.create(),
@@ -48,8 +49,11 @@ var lightsUniformBuffer;
 
 /////////////////// Tiled shading //////////////////
 
-var gridColumns = 16;
-var gridRows = 16;
+var tiledShader;
+var tiledDrawCall;
+
+var gridColumns = 1;
+var gridRows = 1;
 
 var lightGrid = [];
 
@@ -57,6 +61,9 @@ var lightGrid = [];
 for (var i = 0; i < gridRows * gridColumns; i++) {
 	lightGrid[i] = [];
 }
+
+// For sending to the GPU (unlike lightGrid which is for CPU calculations)
+var lightGridUniform = new Int32Array(2 * gridColumns * gridRows);
 
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
@@ -100,7 +107,7 @@ function updateFrameTimeLabel(timeMs) {
 function setupCamera(aspectRatio) {
 	camera.position = vec3.fromValues(0.0, 0.0, sceneSize + 10.0);
 	mat4.lookAt(camera.viewMatrix, camera.position, vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
-	mat4.perspective(camera.projection, Math.PI / 2.0, aspectRatio, 0.5, 100);
+	mat4.perspective(camera.projection, camera.fovY, aspectRatio, 0.5, 100);
 	mat4.multiply(camera.viewProjection, camera.projection, camera.viewMatrix);
 	camera.aspectRatio = aspectRatio;
 }
@@ -110,6 +117,7 @@ function setupScene() {
 	ambientShader = makeShader('ambient');
 	forwardShader = makeShader('forward');
 	forwardOnePassShader = makeShader('forward-one-pass');
+	tiledShader = makeShader('tiled');
 
 	// Set up buffer for storing the model matrices for the instanced cubes
 	modelMatrixData = new Float32Array(numCubes * 16 /* floats */);
@@ -154,15 +162,13 @@ function setupScene() {
 		ambientDrawCall = app.createDrawCall(ambientShader, cubeVA);
 		forwardDrawCall = app.createDrawCall(forwardShader, cubeVA);
 		forwardOnePassDrawCall = app.createDrawCall(forwardOnePassShader, cubeVA);
+		tiledDrawCall = app.createDrawCall(tiledShader, cubeVA);
 
 		//
 		// Setup initial/constant uniforms
 		//
 
-		// Default forward
-		forwardDrawCall.uniform('lightRadius', lightRadius);
-
-		// One pass forward
+		// Set up the light uniform buffer
 		var lightsLayout = new Array(1002);
 		for (var i = 0; i < 1000; ++i) { lightsLayout[i] = PicoGL.FLOAT_VEC4; }
 		lightsLayout[1000] = PicoGL.INT;
@@ -175,10 +181,14 @@ function setupScene() {
 		lightsUniformBuffer.set(1001, lightRadius);
 		lightsUniformBuffer.update();
 
+		// Default forward
+		forwardDrawCall.uniform('lightRadius', lightRadius);
+
+		// One pass forward
 		forwardOnePassDrawCall.uniformBlock('LightsBlock', lightsUniformBuffer);
 
 		// Tiled shading
-		// TODO: Set up at least the radius!
+		tiledDrawCall.uniformBlock('LightsBlock', lightsUniformBuffer);
 
 	});
 
@@ -305,12 +315,15 @@ function onRender() {
 
 		case 'tiled-shading':
 		{
-/*
-			// TODO: Implement!
-
 			// Group lights into the light grid cells (assuming that the scene nor camera
-			// is static this has to be done every frame like this)
-			var lightIndexListLength = 0;
+			// is static this has to be done every frame)
+
+			// Empty the light grid
+			for (var i = 0; i < gridRows * gridColumns; i++) {
+				lightGrid[i] = [];
+			}
+
+			var lightIndexListLength = 0; // TODO: Needed?
 			for (var lightIndex = 0; lightIndex < lights.length; lightIndex++) {
 				var light = lights[lightIndex];
 
@@ -323,39 +336,82 @@ function onRender() {
 				var gridX = (p[0] * 0.5 + 0.5) * gridColumns;
 				var gridY = (p[1] * 0.5 + 0.5) * gridRows;
 
-				// TODO: We now know the center point of the sphere in grid-space. However, we want to cover all area
-				// of the sphere so we have to loop through all of the potential grid cells and check if it is covered
-				// by the light. If a light covers a grid cell we add lightIndex to the grid cell and increment the
-				// lightIndexListLength so that we can create the index list later.
+				// NOTE: Only works with precision if the sphere is at the absolute center of the screen!
+				function computeProjectedRadius(fovy, d, r) {
+					return 1.0 / Math.tan(fovy) * r / Math.sqrt(d * d - r * r);
+				}
 
-				var gridSpaceRadius = lightRadius;// ??? TODO Implement this somehow!
+				var distance = vec3.distance(camera.position, light.position);
+				var projectedRadius = computeProjectedRadius(camera.fovY, distance, lightRadius);
 
-				for (var yy = -gridSpaceRadius; yy < gridSpaceRadius; yy += 1.0) {
-					for (var xx = -gridSpaceRadius; xx < gridSpaceRadius; xx += 1.0) {
+				// Calculate grid space radius and account for the warping from the projection if the
+				// light is not at the center of the screen by adding 1/2 of a grid cell to the radius.
+				// This is required since the computeProjectedRadius function only works if the sphere
+				// is at the absolute center of the screen.
+				var gridSpaceRadiusX = projectedRadius * gridColumns + 0.5;
+				var gridSpaceRadiusY = projectedRadius * gridRows + 0.5;
+
+				for (var yy = -gridSpaceRadiusY; yy <= gridSpaceRadiusY; yy += 1.0) {
+					for (var xx = -gridSpaceRadiusX; xx <= gridSpaceRadiusX; xx += 1.0) {
+
 						// TODO: Now we are effectively selecting all cells in a square but in many cases this will
-						// include some corner cells that isn't actually covered by the light. For optimal efficiency
-						// of the techiniqe we need to not include these.
+						// include some corner cells that aren't actually covered by the light. For optimal efficiency
+						// of the technique we need to not include these.
 
 						var x = Math.floor(gridX + xx);
 						var y = Math.floor(gridY + yy);
 
-						var index = y * gridColumns + x;
-						lightGrid[index].push(lightIndex);
-						lightIndexListLength += 1;
+						if (x >= 0 && x < gridColumns && y >= 0 && y < gridRows) {
+							var index = y * gridColumns + x;
+							lightGrid[index].push(lightIndex);
+							lightIndexListLength += 1; // TODO: Needed?
+						}
 					}
 				}
 			}
-*/
+
 			// TODO: Create GPU buffers for the lightGrid and upload it as:
 			// light grid - array of vec2(index, length) into the light grid indices list
 			// light grid indices - essentially what the lightGrid JS 2D array is now but flattened
 
+			var currentIndex = 0;
+			var lightGridIndices = [];
+
+			for (var i = 0; i < lightGrid.length; i++) {
+
+				// Push the light indices to the full light grid index list
+				Array.prototype.push.apply(lightGridIndices, lightGrid[i]);
+
+				var lightsForGridCell = lightGrid[i].length;
+
+				lightGridUniform[2 * i + 0] = currentIndex;
+				lightGridUniform[2 * i + 1] = lightsForGridCell;
+
+				currentIndex += lightsForGridCell;
+			}
+
+			var lightGridIndexTexture = app.createTexture2D(new Int16Array(lightGridIndices), lightGridIndices.length, 1, {
+				type: PicoGL.SHORT,
+				format: PicoGL.RED_INTEGER,
+				internalFormat: PicoGL.R16I,
+				minFilter: PicoGL.NEAREST,
+				magFilter: PicoGL.NEAREST
+			});
+
+			tiledDrawCall.uniform('lightGrid[0]', lightGridUniform);
+			tiledDrawCall.texture('lightGridIndicesTex', lightGridIndexTexture);
+
+			// Draw z-prepass and ambient
 			app.depthTest().depthFunc(PicoGL.LEQUAL);
 			ambientDrawCall.uniform('viewProjection', camera.viewProjection);
 			app.drawCalls([ambientDrawCall]);
 			app.noBlend().draw();
 
-			// TODO: Implement!
+			tiledDrawCall.uniform('viewProjection', camera.viewProjection);
+			app.drawCalls([tiledDrawCall]);
+			app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE);
+			app.depthFunc(PicoGL.EQUAL); // ambient acts as z-prepass
+			app.draw();
 		}
 		break;
 	}
