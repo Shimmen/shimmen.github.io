@@ -6,9 +6,11 @@
 
 var app;
 
-var particleCount = 100000;
-var simulationSpeed = 0.0;
+var mousePosition = vec2.create();
 
+var particleCount = 200000;
+
+var heatLutTexture;
 var particleShader;
 
 var drawCallA, drawCallB;
@@ -24,6 +26,8 @@ function onSetup(canvas) {
 
 	document.addEventListener('keydown', onKeydownEvent);
 	document.getElementById('start-sim-btn').addEventListener('click', startSimulation);
+
+	canvas.addEventListener('mousemove', mouseMovedInCanvas);
 }
 
 function onResize(width, height) {
@@ -37,7 +41,7 @@ var KEY_9 = 57;
 
 function onKeydownEvent(e) {
 	if (e.keyCode >= 48 && e.keyCode <= 57) {
-		var speed = (e.keyCode - 48.0) / (KEY_9 - KEY_0)
+		var speed = (e.keyCode - 48.0) / (KEY_9 - KEY_0);
 		simulationSpeed = speed;
 	}
 }
@@ -46,31 +50,40 @@ function startSimulation() {
 	simulationSpeed = 0.5;
 }
 
+function mouseMovedInCanvas(e) {
+	// update mouse position
+	var rect = app.canvas.getBoundingClientRect();
+	var x = e.clientX - rect.left;
+	var y = e.clientY - rect.top;
+	mousePosition[0] = 2.0 * (x / app.canvas.width) - 1.0;
+	mousePosition[1] = 2.0 * (1.0 - y / app.canvas.height) - 1.0;
+}
+
 ////////////////////////////////////////////////////
 
 function setupScene() {
 
+	// Load textures
+	var heatLutImage = new Image();
+	heatLutImage.onload = function() { heatLutTexture = app.createTexture2D(heatLutImage); }
+	heatLutImage.src = 'blackbody_gradient.png';
+
 	// Make particles with random positions and velocities
 	var positions = new Float32Array(particleCount * 3);
-	var velocities = new Float32Array(particleCount * 3);
 	for (var particleIndex = 0; particleIndex < particleCount; particleIndex++) {
 		var i = particleIndex * 3.0;
 
 		positions[i + 0] = randomInRange(-1, 1);
 		positions[i + 1] = randomInRange(-1, 1);
 		positions[i + 2] = randomInRange(-1, 1);
-
-		velocities[i + 0] = randomInRange(-1, 1);
-		velocities[i + 1] = randomInRange(-1, 1);
-		velocities[i + 2] = randomInRange(-1, 1);
 	}
 
 	particleShader = makeShader('particles', ['tf_position', 'tf_velocity']);
 
 	var positionsA = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(positions));
-	var velocitiesA = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(velocities));
+	var velocitiesA = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
 	var positionsB = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
-	var velocitiesB = app.createVertexBuffer(PicoGL.FLOAT, 3, velocities.length);
+	var velocitiesB = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
 
 	var vertexArrayA = app.createVertexArray()
 	.vertexAttributeBuffer(0, positionsA)
@@ -118,14 +131,18 @@ function randomInRange(min, max) {
 // ------------------  Render  -------------------//
 ////////////////////////////////////////////////////
 
-var startTime;
-var delay = 3; // seconds
-
 function onRender() {
 	app.clearColor(0, 0, 0, 1).clear();
 
+	// Wait until image is loaded
+	if (heatLutTexture === undefined) return;
+
 	app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE_MINUS_SRC_ALPHA); // (premultiplied alpha)
-	nextDrawCall.uniform('simulationSpeed', simulationSpeed).draw();
+
+	nextDrawCall
+	.uniform('mousePosition', mousePosition)
+	.texture('heatLut', heatLutTexture)
+	.draw();
 
 	// Switch what draw call to perform next frame
 	nextDrawCall = (nextDrawCall === drawCallA) ? drawCallB : drawCallA;
