@@ -7,6 +7,7 @@
 var app;
 
 var mousePosition = vec2.create();
+var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 
 var particleCount = 200000;
 
@@ -73,8 +74,8 @@ function setupScene() {
 	for (var particleIndex = 0; particleIndex < particleCount; particleIndex++) {
 		var i = particleIndex * 3.0;
 
-		positions[i + 0] = randomInRange(-1, 1);
-		positions[i + 1] = randomInRange(-1, 1);
+		positions[i + 0] = randomInRange(-simulationBoxSize[0], simulationBoxSize[0]);
+		positions[i + 1] = randomInRange(-simulationBoxSize[1], simulationBoxSize[1]);
 		positions[i + 2] = randomInRange(-1, 1);
 	}
 
@@ -141,6 +142,7 @@ function onRender() {
 
 	nextDrawCall
 	.uniform('mousePosition', mousePosition)
+	.uniform('simBoxSize', simulationBoxSize)
 	.texture('heatLut', heatLutTexture)
 	.draw();
 
