@@ -26,15 +26,30 @@
 
 			<script type="x-shader/x-vertex" id="particles-vs">
 				#version 300 es
+				const float G = 1.0 / 30000.0;
+				const float M = 0.7; // of cursor, so to speak
 				layout(location = 0) in vec3 a_position;
 				layout(location = 1) in vec3 a_velocity;
-				uniform float simulationSpeed;
+				uniform vec2 mousePosition;
 				out vec3 tf_position;
 				out vec3 tf_velocity;
 				void main() {
+
 					// simulate
-					vec3 pos = a_position + (a_velocity * 0.01 * simulationSpeed);
-					vec3 vel = a_velocity;
+					vec3 mousePos = vec3(mousePosition, 0.0);
+					vec3 toMouse = mousePos - a_position;
+					float r2 = max(0.01, dot(toMouse, toMouse));
+					vec3 acceleration = G * M * normalize(toMouse) / r2;
+
+					vec3 vel = a_velocity + acceleration;
+					vec3 pos = a_position + vel;
+
+					// reset xy velocity if position is outside xy (canvas) border
+					vec2 margin = vec2(0.6, 0.65);
+					if (pos.x <= -margin.x && dot(vel, vec3(+1, 0, 0)) < 0.0) vel.x = 0.0;
+					if (pos.x >= +margin.x && dot(vel, vec3(-1, 0, 0)) < 0.0) vel.x = 0.0;
+					if (pos.y <= -margin.y && dot(vel, vec3(0, +1, 0)) < 0.0) vel.y = 0.0;
+					if (pos.y >= +margin.y && dot(vel, vec3(0, -1, 0)) < 0.0) vel.y = 0.0;
 
 					// transform feedback
 					tf_position = pos;
@@ -47,10 +62,20 @@
 			<script type="x-shader/x-fragment" id="particles-fs">
 				#version 300 es
 				precision highp float;
+				in vec3 tf_position;
+				in vec3 tf_velocity;
+				uniform sampler2D heatLut;
 				out vec4 fragColor;
 				void main() {
-					float alpha = 0.25;
-					fragColor = vec4(alpha);
+					// calculate color from velocity
+					float speedValue = clamp(length(tf_velocity) * 38.0, 0.15, 1.0);
+					vec3 color = texture(heatLut, vec2(speedValue, 0.5)).rgb;
+
+					// calculate alpha depending on z-distance (far away -> more faded)
+					float alpha = 0.5 + 0.25 * tf_position.z;
+
+					// premultiply alpha
+					fragColor = vec4(color * alpha, alpha);
 				}
 			</script>
 
