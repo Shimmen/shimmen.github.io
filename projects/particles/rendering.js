@@ -10,19 +10,25 @@ var mousePosition = vec2.create();
 var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 
 var particleCount = 200000;
-
 var heatLutTexture;
-var particleShader;
+
+////////////////////////////////////////////////////
+
+var offscreenFramebuffer;
 
 var drawCallA, drawCallB;
 var nextDrawCall;
+
+var blurDrawCallH, blurDrawCallV;
 
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
 ////////////////////////////////////////////////////
 
 function onSetup(canvas) {
-	app = PicoGL.createApp(canvas);
+	app = PicoGL.createApp(canvas)
+	.clearColor(0, 0, 0, 1);
+
 	setupScene();
 
 	document.addEventListener('keydown', onKeydownEvent);
@@ -64,10 +70,23 @@ function mouseMovedInCanvas(e) {
 
 function setupScene() {
 
+	//
 	// Load textures
+	//
 	var heatLutImage = new Image();
 	heatLutImage.onload = function() { heatLutTexture = app.createTexture2D(heatLutImage); }
 	heatLutImage.src = 'blackbody_gradient.png';
+
+	//
+	// Create frame buffers
+	//
+/*
+	offscreenFramebuffer = app.createFramebuffer(app.width * 4.0, app.height * 4.0)
+	.colorTarget(0);
+*/
+	//
+	// Create particle draw calls
+	//
 
 	// Make particles with random positions and velocities
 	var positions = new Float32Array(particleCount * 3);
@@ -79,7 +98,7 @@ function setupScene() {
 		positions[i + 2] = randomInRange(-1, 1);
 	}
 
-	particleShader = makeShader('particles', ['tf_position', 'tf_velocity']);
+	var particleShader = makeShader('particles', ['tf_position', 'tf_velocity']);
 
 	var positionsA = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(positions));
 	var velocitiesA = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
@@ -108,8 +127,28 @@ function setupScene() {
 	drawCallB = app.createDrawCall(particleShader, vertexArrayB, PicoGL.POINTS)
 	.transformFeedback(feedbackToA);
 
-	// Set next draw call to perform
+	// Set next particle draw call to perform
 	nextDrawCall = drawCallA;
+
+	//
+	// Create blur draw call
+	//
+
+	var quadPositions = app.createVertexBuffer(PicoGL.FLOAT, 2, new Float32Array([
+		-1, -1,
+		+1, -1,
+		+1, +1,
+
+		-1, -1,
+		+1, +1,
+		-1, +1
+	]));
+
+	var quadVertexArray = app.createVertexArray()
+	.vertexAttributeBuffer(0, quadPositions);
+
+	var blurShaderH = makeShader('blur');
+	blurDrawCallH = app.createDrawCall(blurShaderH, quadVertexArray);
 }
 
 function makeShader(name, transformFeedbackVaryings = []) {
@@ -133,11 +172,16 @@ function randomInRange(min, max) {
 ////////////////////////////////////////////////////
 
 function onRender() {
-	app.clearColor(0, 0, 0, 1).clear();
-
 	// Wait until image is loaded
-	if (heatLutTexture === undefined) return;
+	if (heatLutTexture === undefined) {
+		app.defaultDrawFramebuffer().clear();
+		return;
+	}
 
+/*
+	app.drawFramebuffer(offscreenFramebuffer).clear();
+*/
+	app.defaultDrawFramebuffer().clear();
 	app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE_MINUS_SRC_ALPHA); // (premultiplied alpha)
 
 	nextDrawCall
@@ -148,4 +192,9 @@ function onRender() {
 
 	// Switch what draw call to perform next frame
 	nextDrawCall = (nextDrawCall === drawCallA) ? drawCallB : drawCallA;
+/*
+	// Blur pass
+	app.defaultDrawFramebuffer().noBlend();
+	blurDrawCallH.texture('u_texture', offscreenFramebuffer.colorTextures[0]).draw();
+*/
 }
