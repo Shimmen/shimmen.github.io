@@ -35,6 +35,8 @@ var camera = {
 var ambientShader;
 var ambientDrawCall;
 
+var lightsUniformBuffer;
+
 ///////////////////// Forward //////////////////////
 
 var forwardShader;
@@ -45,25 +47,19 @@ var forwardDrawCall;
 var forwardOnePassShader;
 var forwardOnePassDrawCall;
 
-var lightsUniformBuffer;
-
 /////////////////// Tiled shading //////////////////
 
 var tiledShader;
 var tiledDrawCall;
 
-var gridColumns = 1;
-var gridRows = 1;
+var lightGridUniformBuffer;
 
-var lightGrid = [];
-
-// For every grid cell a list of affecting lights
-for (var i = 0; i < gridRows * gridColumns; i++) {
-	lightGrid[i] = [];
-}
+var gridColumns = 8;
+var gridRows = 8;
 
 // For sending to the GPU (unlike lightGrid which is for CPU calculations)
-var lightGridUniform = new Int32Array(2 * gridColumns * gridRows);
+var maxNumberOfTiles = 8 * 8;
+var lightGridUniform = new Int32Array(2 * maxNumberOfTiles);
 
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
@@ -188,7 +184,24 @@ function setupScene() {
 		forwardOnePassDrawCall.uniformBlock('LightsBlock', lightsUniformBuffer);
 
 		// Tiled shading
+		/*
+		var lightGridLayout = new Array(maxNumberOfTiles + 2);
+		for (var i = 0; i < maxNumberOfTiles; ++i) { lightGridLayout[i] = PicoGL.INT_VEC4; }
+		lightGridLayout[maxNumberOfTiles + 0] = PicoGL.INT_VEC4;
+		lightGridLayout[maxNumberOfTiles + 1] = PicoGL.INT_VEC4;
+		lightGridUniformBuffer = app.createUniformBuffer(lightGridLayout);
+
+		var numberOfTiles = gridColumns * gridRows;
+		for (var i = 0; i < numberOfTiles; ++i) {
+			var tileData = vec4.fromValues(lightGridUniform[2*i+0], lightGridUniform[2*i+1], 0, 0); // new Int32Array(lightGridUniform.buffer, 2 * i * 4, 2);
+			lightGridUniformBuffer.set(i, tileData);
+		}
+		lightGridUniformBuffer.set(maxNumberOfTiles + 0, vec4.fromValues(gridColumns, gridRows, 0, 0));
+		lightGridUniformBuffer.set(maxNumberOfTiles + 1, vec4.fromValues(850.0 / gridColumns, 478.0 / gridRows, 0, 0));
+		lightGridUniformBuffer.update();
+		*/
 		tiledDrawCall.uniformBlock('LightsBlock', lightsUniformBuffer);
+		//tiledDrawCall.uniformBlock('LightGridBlock', lightGridUniformBuffer);
 
 	});
 
@@ -318,7 +331,8 @@ function onRender() {
 			// Group lights into the light grid cells (assuming that the scene nor camera
 			// is static this has to be done every frame)
 
-			// Empty the light grid
+			// Set up the light grid
+			var lightGrid = [];
 			for (var i = 0; i < gridRows * gridColumns; i++) {
 				lightGrid[i] = [];
 			}
@@ -338,6 +352,7 @@ function onRender() {
 
 				// NOTE: Only works with precision if the sphere is at the absolute center of the screen!
 				function computeProjectedRadius(fovy, d, r) {
+					d = Math.max(r + 0.1, d); // for the sqrt and '/' below we need d > r
 					return 1.0 / Math.tan(fovy) * r / Math.sqrt(d * d - r * r);
 				}
 
@@ -348,8 +363,8 @@ function onRender() {
 				// light is not at the center of the screen by adding 1/2 of a grid cell to the radius.
 				// This is required since the computeProjectedRadius function only works if the sphere
 				// is at the absolute center of the screen.
-				var gridSpaceRadiusX = projectedRadius * gridColumns + 0.5;
-				var gridSpaceRadiusY = projectedRadius * gridRows + 0.5;
+				var gridSpaceRadiusX = projectedRadius * gridColumns;// + 8.0;
+				var gridSpaceRadiusY = projectedRadius * gridRows;// + 8.0;
 
 				for (var yy = -gridSpaceRadiusY; yy <= gridSpaceRadiusY; yy += 1.0) {
 					for (var xx = -gridSpaceRadiusX; xx <= gridSpaceRadiusX; xx += 1.0) {
@@ -399,6 +414,8 @@ function onRender() {
 			});
 
 			tiledDrawCall.uniform('lightGrid[0]', lightGridUniform);
+			tiledDrawCall.uniform('gridSize', new Int32Array([gridColumns, gridRows]));
+			tiledDrawCall.uniform('gridCellSize', new Int32Array([app.canvas.width / gridColumns, app.canvas.height / gridRows]));
 			tiledDrawCall.texture('lightGridIndicesTex', lightGridIndexTexture);
 
 			// Draw z-prepass and ambient
