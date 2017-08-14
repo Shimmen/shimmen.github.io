@@ -35,7 +35,6 @@
 				out vec3 tf_position;
 				out vec3 tf_velocity;
 				void main() {
-
 					// simulate
 					vec3 mousePos = vec3(mousePosition, 0.0);
 					vec3 toMouse = mousePos - a_position;
@@ -46,11 +45,10 @@
 					vec3 pos = a_position + vel;
 
 					// reset xy velocity if position is outside xy (canvas) border
-					vec2 margin = simBoxSize;
-					if (pos.x <= -margin.x && dot(vel, vec3(+1, 0, 0)) < 0.0) vel.x = 0.0;
-					if (pos.x >= +margin.x && dot(vel, vec3(-1, 0, 0)) < 0.0) vel.x = 0.0;
-					if (pos.y <= -margin.y && dot(vel, vec3(0, +1, 0)) < 0.0) vel.y = 0.0;
-					if (pos.y >= +margin.y && dot(vel, vec3(0, -1, 0)) < 0.0) vel.y = 0.0;
+					if (pos.x <= -simBoxSize.x && dot(vel, vec3(+1, 0, 0)) < 0.0) vel.x = 0.0;
+					if (pos.x >= +simBoxSize.x && dot(vel, vec3(-1, 0, 0)) < 0.0) vel.x = 0.0;
+					if (pos.y <= -simBoxSize.y && dot(vel, vec3(0, +1, 0)) < 0.0) vel.y = 0.0;
+					if (pos.y >= +simBoxSize.y && dot(vel, vec3(0, -1, 0)) < 0.0) vel.y = 0.0;
 
 					// transform feedback
 					tf_position = pos;
@@ -78,6 +76,52 @@
 					// premultiply alpha
 					fragColor = vec4(color * alpha, alpha);
 				}
+			</script>
+
+			<script type="x-shader/x-vertex" id="blur-vs">
+				#version 300 es
+				layout(location = 0) in vec2 a_position;
+				out vec2 v_uv;
+				void main() {
+					v_uv = a_position * 0.5 + 0.5;
+					gl_Position = vec4(a_position, 0.0, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="blur-fs">
+				#version 300 es
+				precision highp float;
+				in vec2 v_uv;
+				uniform sampler2D u_texture;
+				out vec4 fragColor;
+				void main() {
+					fragColor = texture(u_texture, v_uv);
+				}
+/*
+				#version 300 es
+				precision highp float;
+				const float offset[3] = float[]( 0.0, 1.3846153846, 3.2307692308 );
+				const float weight[3] = float[]( 0.2270270270, 0.3162162162, 0.0702702703 );
+				in vec2 v_uv;
+				uniform sampler2D u_texture;
+				uniform int u_texture_lod;
+
+				// Inspired by: http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
+				void main() {
+					fragColor = textureLod(u_texture, v_uv, u_texture_lod) * weight[0];
+					for (int i = 1; i < 3; ++i) {
+						// Offsets in array are defined in (sub-)pixel offsets
+				#if defined(VERTICAL_PASS)
+						vec2 offset = vec2(0, offset[i]) / textureSize(u_texture, u_texture_lod);
+				#elif defined(HORIZONTAL_PASS)
+						vec2 offset = vec2(offset[i], 0) / textureSize(u_texture, u_texture_lod);
+				#else
+						#error "VERTICAL_PASS or HORIZONTAL_PASS must be defined (and not both)!"
+				#endif
+						o_fragment_color += textureLod(u_texture, v_tex_coord + offset, u_texture_lod) * weight[i];
+						o_fragment_color += textureLod(u_texture, v_tex_coord - offset, u_texture_lod) * weight[i];
+					}
+				}
+*/
 			</script>
 
 			<h2>About</h2>
