@@ -30,6 +30,7 @@
 				const float M = 0.7; // of cursor, so to speak
 				layout(location = 0) in vec3 a_position;
 				layout(location = 1) in vec3 a_velocity;
+				uniform vec2 simBoxSize;
 				uniform vec2 mousePosition;
 				out vec3 tf_position;
 				out vec3 tf_velocity;
@@ -45,7 +46,7 @@
 					vec3 pos = a_position + vel;
 
 					// reset xy velocity if position is outside xy (canvas) border
-					vec2 margin = vec2(0.6, 0.65);
+					vec2 margin = simBoxSize;
 					if (pos.x <= -margin.x && dot(vel, vec3(+1, 0, 0)) < 0.0) vel.x = 0.0;
 					if (pos.x >= +margin.x && dot(vel, vec3(-1, 0, 0)) < 0.0) vel.x = 0.0;
 					if (pos.y <= -margin.y && dot(vel, vec3(0, +1, 0)) < 0.0) vel.y = 0.0;
