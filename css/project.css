@@ -131,9 +131,8 @@ header h1 {
 #no-webgl2-error {
   color: #ff4444; }
 
-#fullscreen-btn {
+button {
   display: block;
-  float: right;
   cursor: pointer;
   margin: 0;
   padding: 6px 10px;
@@ -145,6 +144,9 @@ header h1 {
   border: 0;
   color: #eee;
   background-color: #444; }
+
+#fullscreen-btn {
+  float: right; }
 
 section h1 {
   display: block;

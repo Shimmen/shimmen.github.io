@@ -22,6 +22,37 @@
 
 			<canvas id="canvas"></canvas>
 			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
+			<button type="button" id="start-sim-btn">Start simulation</button>
+
+			<script type="x-shader/x-vertex" id="particles-vs">
+				#version 300 es
+				layout(location = 0) in vec3 a_position;
+				layout(location = 1) in vec3 a_velocity;
+				uniform float simulationSpeed;
+				out vec3 tf_position;
+				out vec3 tf_velocity;
+				void main() {
+					// simulate
+					vec3 pos = a_position + (a_velocity * 0.01 * simulationSpeed);
+					vec3 vel = a_velocity;
+
+					// transform feedback
+					tf_position = pos;
+					tf_velocity = vel;
+
+					gl_PointSize = 2.0;
+					gl_Position = vec4(pos, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="particles-fs">
+				#version 300 es
+				precision highp float;
+				out vec4 fragColor;
+				void main() {
+					float alpha = 0.25;
+					fragColor = vec4(alpha);
+				}
+			</script>
 
 			<h2>About</h2>
 			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
@@ -44,6 +75,7 @@
 		</footer>
 
 		<script src="../picogl.min.js" charset="utf-8"></script>
+		<script src="../gl-matrix-min.js" charset="utf-8"></script>
 		<script src="rendering.js" charset="utf-8"></script>
 		<script src="../base.js" charset="utf-8"></script>
 

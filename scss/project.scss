@@ -27,10 +27,8 @@ header {
 	color: #ff4444;
 }
 
-#fullscreen-btn {
+button {
 	display: block;
-	float: right;
-
 	cursor: pointer;
 
 	margin: 0;
@@ -44,6 +42,10 @@ header {
 	border: 0;
 	color: $bg-color;
 	background-color: $code-background;
+}
+
+#fullscreen-btn {
+	float: right;
 }
 
 section {
