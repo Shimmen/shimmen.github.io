@@ -14,9 +14,11 @@ var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 var particleCount = 200000;
 var heatLutTexture;
 
+var numBlurPasses = 1;
+
 ////////////////////////////////////////////////////
 
-var offscreenFramebuffer;
+var offscreenFramebuffer1, offscreenFramebuffer2;
 
 var drawCallA, drawCallB;
 var nextDrawCall;
@@ -41,6 +43,8 @@ function onSetup(canvas) {
 
 function onResize(width, height) {
 	app.resize(width, height);
+	offscreenFramebuffer1.resize(width, height);
+	offscreenFramebuffer2.resize(width, height);
 }
 
 ////////////////////////////////////////////////////
@@ -50,8 +54,8 @@ var KEY_9 = 57;
 
 function onKeydownEvent(e) {
 	if (e.keyCode >= 48 && e.keyCode <= 57) {
-		var speed = (e.keyCode - 48.0) / (KEY_9 - KEY_0);
-		simulationSpeed = speed;
+		var selected = e.keyCode - 48.0;
+		numBlurPasses = selected * selected;
 	}
 }
 
@@ -82,10 +86,13 @@ function setupScene() {
 	//
 	// Create frame buffers
 	//
-/*
-	offscreenFramebuffer = app.createFramebuffer(app.width * 4.0, app.height * 4.0)
+
+	offscreenFramebuffer1 = app.createFramebuffer()
 	.colorTarget(0);
-*/
+
+	offscreenFramebuffer2 = app.createFramebuffer()
+	.colorTarget(0);
+
 	//
 	// Create particle draw calls
 	//
@@ -159,8 +166,11 @@ function setupScene() {
 	var quadVertexArray = app.createVertexArray()
 	.vertexAttributeBuffer(0, quadPositions);
 
-	var blurShaderH = makeShader('blur');
+	var blurShaderH = makeShader('blur-h');
 	blurDrawCallH = app.createDrawCall(blurShaderH, quadVertexArray);
+
+	var blurShaderV = makeShader('blur-v');
+	blurDrawCallV = app.createDrawCall(blurShaderV, quadVertexArray);
 }
 
 function makeShader(name, transformFeedbackVaryings = []) {
@@ -190,10 +200,12 @@ function onRender() {
 		return;
 	}
 
-/*
-	app.drawFramebuffer(offscreenFramebuffer).clear();
-*/
-	app.defaultDrawFramebuffer().clear();
+	if (numBlurPasses > 0) {
+		app.drawFramebuffer(offscreenFramebuffer1).clear();
+	} else {
+		app.defaultDrawFramebuffer().clear();
+	}
+
 	app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE_MINUS_SRC_ALPHA); // (premultiplied alpha)
 
 	nextDrawCall
@@ -204,9 +216,24 @@ function onRender() {
 
 	// Switch what draw call to perform next frame
 	nextDrawCall = (nextDrawCall === drawCallA) ? drawCallB : drawCallA;
-/*
-	// Blur pass
-	app.defaultDrawFramebuffer().noBlend();
-	blurDrawCallH.texture('u_texture', offscreenFramebuffer.colorTextures[0]).draw();
-*/
+
+	// Blur passes
+	if (numBlurPasses > 0) {
+
+		app.noBlend();
+		blurDrawCallH.texture('u_texture', offscreenFramebuffer1.colorTextures[0]);
+		blurDrawCallV.texture('u_texture', offscreenFramebuffer2.colorTextures[0]);
+
+		for (var i = 0; i < numBlurPasses - 1; i++) {
+			app.drawFramebuffer(offscreenFramebuffer2);
+			blurDrawCallH.draw();
+			app.drawFramebuffer(offscreenFramebuffer1);
+			blurDrawCallV.draw();
+		}
+
+		app.drawFramebuffer(offscreenFramebuffer2);
+		blurDrawCallH.draw();
+		app.defaultDrawFramebuffer();
+		blurDrawCallV.draw();
+	}
 }
