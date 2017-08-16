@@ -7,6 +7,7 @@
 var app;
 
 var spawnPattern = 'dot';
+var requestReset = false;
 
 var mousePosition = vec2.create();
 var simulationBoxSize = vec2.fromValues(0.6, 0.65);
@@ -19,6 +20,9 @@ var numBlurPasses = 0;
 ////////////////////////////////////////////////////
 
 var offscreenFramebuffer1, offscreenFramebuffer2;
+
+// For resetting particles (feedbackToB is required to fix ANGLE bug, see note below)
+var positionsA, velocitiesA, feedbackToB;
 
 var particleDrawCallA, particleDrawCallB;
 var nextParticleDrawCall;
@@ -37,9 +41,16 @@ function onSetup(canvas) {
 	setupScene();
 
 	document.addEventListener('keydown', onKeydownEvent);
-	document.getElementById('start-sim-btn').addEventListener('click', startSimulation);
-
 	canvas.addEventListener('mousemove', mouseMovedInCanvas);
+
+	document.getElementById('reset-uniform-btn').addEventListener('click', function() {
+		spawnPattern = 'uniform';
+		resetParticles();
+	});
+	document.getElementById('reset-dot-btn').addEventListener('click', function() {
+		spawnPattern = 'dot';
+		resetParticles();
+	});
 }
 
 function onResize(width, height) {
@@ -98,32 +109,13 @@ function setupScene() {
 	// Create particle draw calls
 	//
 
-	// Make particles with random positions and velocities
-	var positions = new Float32Array(particleCount * 3);
-	for (var particleIndex = 0; particleIndex < particleCount; particleIndex++) {
-		var i = particleIndex * 3.0;
-		switch (spawnPattern) {
-			case 'dot':
-				positions[i + 0] = randomInRange(0.25, 0.3);
-				positions[i + 1] = randomInRange(0.25, 0.3);
-				positions[i + 2] = randomInRange(-0.25, 0.25);
-				break;
-			case 'uniform':
-			default:
-				positions[i + 0] = randomInRange(-simulationBoxSize[0], simulationBoxSize[0]);
-				positions[i + 1] = randomInRange(-simulationBoxSize[1], simulationBoxSize[1]);
-				positions[i + 2] = randomInRange(-1, 1);
-				break;
-
-		}
-	}
-
 	var particleShader = makeShader('particles', ['tf_position', 'tf_velocity']);
 
-	var positionsA = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(positions));
-	var velocitiesA = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
-	var positionsB = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
-	var velocitiesB = app.createVertexBuffer(PicoGL.FLOAT, 3, positions.length);
+	var elementCount = particleCount * 3;
+	positionsA = app.createVertexBuffer(PicoGL.FLOAT, 3, elementCount);
+	velocitiesA = app.createVertexBuffer(PicoGL.FLOAT, 3, elementCount);
+	var positionsB = app.createVertexBuffer(PicoGL.FLOAT, 3, elementCount);
+	var velocitiesB = app.createVertexBuffer(PicoGL.FLOAT, 3, elementCount);
 
 	var vertexArrayA = app.createVertexArray()
 	.vertexAttributeBuffer(0, positionsA)
@@ -133,7 +125,7 @@ function setupScene() {
 	.vertexAttributeBuffer(0, positionsB)
 	.vertexAttributeBuffer(1, velocitiesB);
 
-	var feedbackToB = app.createTransformFeedback()
+	feedbackToB = app.createTransformFeedback()
 	.feedbackBuffer(0, positionsB)
 	.feedbackBuffer(1, velocitiesB);
 
@@ -147,8 +139,7 @@ function setupScene() {
 	particleDrawCallB = app.createDrawCall(particleShader, vertexArrayB, PicoGL.POINTS)
 	.transformFeedback(feedbackToA);
 
-	// Set next particle draw call to perform
-	nextParticleDrawCall = particleDrawCallA;
+	resetParticles();
 
 	//
 	// Create blur draw call
@@ -180,6 +171,44 @@ function setupScene() {
 	var blitShader = makeShader('blit');
 	blitDrawCall = app.createDrawCall(blitShader, quadVertexArray);
 
+}
+
+function resetParticles() {
+	var elementCount = particleCount * 3;
+	var positions = new Float32Array(elementCount);
+
+	for (var particleIndex = 0; particleIndex < particleCount; particleIndex++) {
+		var i = particleIndex * 3;
+		switch (spawnPattern) {
+
+			case 'dot':
+				positions[i + 0] = randomInRange(0.25, 0.3);
+				positions[i + 1] = randomInRange(0.25, 0.3);
+				positions[i + 2] = randomInRange(-0.25, 0.25);
+				break;
+
+			case 'uniform':
+			default:
+				positions[i + 0] = randomInRange(-simulationBoxSize[0], simulationBoxSize[0]);
+				positions[i + 1] = randomInRange(-simulationBoxSize[1], simulationBoxSize[1]);
+				positions[i + 2] = randomInRange(-1, 1);
+				break;
+
+		}
+	}
+
+	positionsA.data(positions);
+	velocitiesA.data(new Float32Array(elementCount)); // zero array
+
+	// NOTE/BUG: This is due to the ANGLE bug documented in PicoGL here:
+	// https://github.com/tsherif/picogl.js/blob/master/src/transform-feedback.js#L38
+	// And indirectly due to a bug in PicoGL, since it doesn't rebind if only the data
+	// has changed. Here I invalidate the currently bound transform feedback to that
+	// PicoGL rebinds the buffers, which is the fix for the ANGLE bug.
+	feedbackToB.appState.transformFeedback = -1;
+
+	// Set next particle draw call to perform
+	nextParticleDrawCall = particleDrawCallA;
 }
 
 function makeShader(name, transformFeedbackVaryings = []) {

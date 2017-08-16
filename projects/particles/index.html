@@ -22,7 +22,12 @@
 
 			<canvas id="canvas"></canvas>
 			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
-			<button type="button" id="start-sim-btn">Start simulation</button>
+			<div>
+				<label>Reset particles as</label>
+				<button type="button" style="display: inline;" id="reset-uniform-btn">Uniform field</button>
+				<button type="button" style="display: inline;" id="reset-dot-btn">One dot</button>
+				<button type="button" style="display: inline;" id="reset-dots-btn">Three dots</button>
+			</div>
 
 			<script type="x-shader/x-vertex" id="particles-vs">
 				#version 300 es
