@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 ////////////////////////////////////////////////////
 // ------------------  Data  ---------------------//
@@ -9,12 +9,13 @@ var app;
 var spawnPattern = 'dots';
 var requestReset = false;
 
-var mousePosition = vec2.fromValues(-1.0, -1.0);
+var mousePosition = vec2.create();
 var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 
 var particleCount = 200000;
 var heatLutTexture;
 
+var paused = true;
 var numBlurPasses = 0;
 
 ////////////////////////////////////////////////////
@@ -68,8 +69,8 @@ function onResize(width, height) {
 
 var KEY_0 = 48;
 var KEY_9 = 57;
+var KEY_P = 80;
 var KEY_R = 82;
-var KEY_ESCAPE = 27;
 
 function onKeydown(e) {
 	if (e.keyCode >= KEY_0 && e.keyCode <= KEY_9) {
@@ -77,9 +78,8 @@ function onKeydown(e) {
 		numBlurPasses = (selected * selected);
 	}
 
-	if (e.keyCode == KEY_ESCAPE) {
-		mousePosition[0] = -1.0;
-		mousePosition[1] = -1.0;
+	if (e.keyCode == KEY_P) {
+		paused = !paused;
 	}
 
 	if (e.keyCode == KEY_R) {
@@ -94,11 +94,11 @@ function onMouseMoveInCanvas(e) {
 	var y = e.clientY - rect.top;
 	mousePosition[0] = 2.0 * (x / app.canvas.width) - 1.0;
 	mousePosition[1] = 2.0 * (1.0 - y / app.canvas.height) - 1.0;
+	paused = false;
 }
 
 function onMouseLeaveCanvas(e) {
-	mousePosition[0] = -1.0;
-	mousePosition[1] = -1.0;
+	paused = true;
 }
 
 ////////////////////////////////////////////////////
@@ -278,6 +278,7 @@ function onRender() {
 
 	nextParticleDrawCall
 	.uniform('u_mouse_position', mousePosition)
+	.uniform('u_simulation_paused', paused)
 	.uniform('u_sim_box_size', simulationBoxSize)
 	.texture('u_heat_lut', heatLutTexture)
 	.draw();
