@@ -14,16 +14,17 @@ var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 var particleCount = 200000;
 var heatLutTexture;
 
-var numBlurPasses = 1;
+var numBlurPasses = 0;
 
 ////////////////////////////////////////////////////
 
 var offscreenFramebuffer1, offscreenFramebuffer2;
 
-var drawCallA, drawCallB;
-var nextDrawCall;
+var particleDrawCallA, particleDrawCallB;
+var nextParticleDrawCall;
 
 var blurDrawCallH, blurDrawCallV;
+var blitDrawCall;
 
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
@@ -140,14 +141,14 @@ function setupScene() {
 	.feedbackBuffer(0, positionsA)
 	.feedbackBuffer(1, velocitiesA);
 
-	drawCallA = app.createDrawCall(particleShader, vertexArrayA, PicoGL.POINTS)
+	particleDrawCallA = app.createDrawCall(particleShader, vertexArrayA, PicoGL.POINTS)
 	.transformFeedback(feedbackToB);
 
-	drawCallB = app.createDrawCall(particleShader, vertexArrayB, PicoGL.POINTS)
+	particleDrawCallB = app.createDrawCall(particleShader, vertexArrayB, PicoGL.POINTS)
 	.transformFeedback(feedbackToA);
 
 	// Set next particle draw call to perform
-	nextDrawCall = drawCallA;
+	nextParticleDrawCall = particleDrawCallA;
 
 	//
 	// Create blur draw call
@@ -171,6 +172,14 @@ function setupScene() {
 
 	var blurShaderV = makeShader('blur-v');
 	blurDrawCallV = app.createDrawCall(blurShaderV, quadVertexArray);
+
+	//
+	// Create blit draw call
+	//
+
+	var blitShader = makeShader('blit');
+	blitDrawCall = app.createDrawCall(blitShader, quadVertexArray);
+
 }
 
 function makeShader(name, transformFeedbackVaryings = []) {
@@ -200,25 +209,20 @@ function onRender() {
 		return;
 	}
 
-	if (numBlurPasses > 0) {
-		app.drawFramebuffer(offscreenFramebuffer1).clear();
-	} else {
-		app.defaultDrawFramebuffer().clear();
-	}
-
+	app.drawFramebuffer(offscreenFramebuffer1).clear();
 	app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE_MINUS_SRC_ALPHA); // (premultiplied alpha)
 
-	nextDrawCall
+	nextParticleDrawCall
 	.uniform('mousePosition', mousePosition)
 	.uniform('simBoxSize', simulationBoxSize)
 	.texture('heatLut', heatLutTexture)
 	.draw();
 
 	// Switch what draw call to perform next frame
-	nextDrawCall = (nextDrawCall === drawCallA) ? drawCallB : drawCallA;
+	nextParticleDrawCall = (nextParticleDrawCall === particleDrawCallA) ? particleDrawCallB : particleDrawCallA;
 
-	// Blur passes
 	if (numBlurPasses > 0) {
+		// Perform blur passes if specified
 
 		app.noBlend();
 		blurDrawCallH.texture('u_texture', offscreenFramebuffer1.colorTextures[0]);
@@ -235,5 +239,20 @@ function onRender() {
 		blurDrawCallH.draw();
 		app.defaultDrawFramebuffer();
 		blurDrawCallV.draw();
+
+	} else {
+		// If no blur passes should be made, simply blit to the canvas
+		app.noBlend();
+		app.defaultDrawFramebuffer();
+		blitDrawCall
+		.texture('u_texture', offscreenFramebuffer1.colorTextures[0])
+		.draw();
+
+		//
+		// TODO:
+		//  Is seems as it would be better to simply draw directly to the canvas / main framebuffer,
+		//  however in practice there was a massive penalty to doing that (>150% slower). So for now
+		//  I'm doing it like this...
+		//
 	}
 }
