@@ -6,6 +6,8 @@
 
 var app;
 
+var spawnPattern = 'dot';
+
 var mousePosition = vec2.create();
 var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 
@@ -92,10 +94,20 @@ function setupScene() {
 	var positions = new Float32Array(particleCount * 3);
 	for (var particleIndex = 0; particleIndex < particleCount; particleIndex++) {
 		var i = particleIndex * 3.0;
+		switch (spawnPattern) {
+			case 'dot':
+				positions[i + 0] = randomInRange(0.25, 0.3);
+				positions[i + 1] = randomInRange(0.25, 0.3);
+				positions[i + 2] = randomInRange(-0.25, 0.25);
+				break;
+			case 'uniform':
+			default:
+				positions[i + 0] = randomInRange(-simulationBoxSize[0], simulationBoxSize[0]);
+				positions[i + 1] = randomInRange(-simulationBoxSize[1], simulationBoxSize[1]);
+				positions[i + 2] = randomInRange(-1, 1);
+				break;
 
-		positions[i + 0] = randomInRange(-simulationBoxSize[0], simulationBoxSize[0]);
-		positions[i + 1] = randomInRange(-simulationBoxSize[1], simulationBoxSize[1]);
-		positions[i + 2] = randomInRange(-1, 1);
+		}
 	}
 
 	var particleShader = makeShader('particles', ['tf_position', 'tf_velocity']);
