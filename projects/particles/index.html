@@ -24,9 +24,9 @@
 			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
 			<div>
 				<label>Reset particles as</label>
-				<button type="button" style="display: inline;" id="reset-uniform-btn">Uniform field</button>
-				<button type="button" style="display: inline;" id="reset-dot-btn">One dot</button>
 				<button type="button" style="display: inline;" id="reset-dots-btn">Three dots</button>
+				<button type="button" style="display: inline;" id="reset-dot-btn">One dot</button>
+				<button type="button" style="display: inline;" id="reset-uniform-btn">Uniform field</button>
 			</div>
 
 			<script type="x-shader/x-vertex" id="particles-vs">
@@ -56,8 +56,13 @@
 					if (pos.y >= +simBoxSize.y && dot(vel, vec3(0, -1, 0)) < 0.0) vel.y = 0.0;
 
 					// transform feedback
-					tf_position = pos;
-					tf_velocity = vel;
+					if (mousePosition.x != -1.0 && mousePosition.y != -1.0) {
+						tf_position = pos;
+						tf_velocity = vel;
+					} else {
+						tf_position = a_position;
+						tf_velocity = a_velocity;
+					}
 
 					gl_PointSize = 2.0;
 					gl_Position = vec4(pos, 1.0);
