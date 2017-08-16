@@ -126,7 +126,7 @@ function setupScene() {
 	// Create particle draw calls
 	//
 
-	var particleShader = makeShader('particles', ['tf_position', 'tf_velocity']);
+	var particleShader = makeShader('particles-vs', 'particles-fs', ['tf_position', 'tf_velocity']);
 
 	var elementCount = particleCount * 3;
 	positionsA = app.createVertexBuffer(PicoGL.FLOAT, 3, elementCount);
@@ -175,17 +175,17 @@ function setupScene() {
 	var quadVertexArray = app.createVertexArray()
 	.vertexAttributeBuffer(0, quadPositions);
 
-	var blurShaderH = makeShader('blur-h');
+	var blurShaderH = makeShader('quad-vs', 'blur-h-fs');
 	blurDrawCallH = app.createDrawCall(blurShaderH, quadVertexArray);
 
-	var blurShaderV = makeShader('blur-v');
+	var blurShaderV = makeShader('quad-vs', 'blur-v-fs');
 	blurDrawCallV = app.createDrawCall(blurShaderV, quadVertexArray);
 
 	//
 	// Create blit draw call
 	//
 
-	var blitShader = makeShader('blit');
+	var blitShader = makeShader('quad-vs', 'blit-fs');
 	blitDrawCall = app.createDrawCall(blitShader, quadVertexArray);
 
 }
@@ -199,7 +199,7 @@ function resetParticles() {
 		switch (spawnPattern) {
 
 			case 'dot':
-				positions[i + 0] = randomInRange(0.25, 0.30);
+				positions[i + 0] = randomInRange(0.45, 0.50);
 				positions[i + 1] = randomInRange(0.25, 0.33);
 				positions[i + 2] = randomInRange(-0.25, 0.25);
 				break;
@@ -245,15 +245,16 @@ function resetParticles() {
 	nextParticleDrawCall = particleDrawCallA;
 }
 
-function makeShader(name, transformFeedbackVaryings = []) {
-	var vertElem = document.getElementById(name + '-vs');
-	var fragElem = document.getElementById(name + '-fs');
+function makeShader(vsName, fsName, transformFeedbackVaryings = []) {
+	if (fsName === undefined) fsName = vsName;
+	var vertElem = document.getElementById(vsName);
+	var fragElem = document.getElementById(fsName);
+	if (!vertElem) alert('Can\'t find vertex shader with name "' + vsName + '"!');
+	if (!fragElem) alert('Can\'t find fragment shader with name "' + fsName + '"!');
 	if (vertElem && fragElem) {
 		var vertSource = vertElem.innerHTML.trim();
 		var fragSource = fragElem.innerHTML.trim();
 		return app.createProgram(vertSource, fragSource, transformFeedbackVaryings);
-	} else {
-		alert('Can\'t find shader "' + name + '"!');
 	}
 }
 
@@ -276,9 +277,9 @@ function onRender() {
 	app.blend().blendFunc(PicoGL.ONE, PicoGL.ONE_MINUS_SRC_ALPHA); // (premultiplied alpha)
 
 	nextParticleDrawCall
-	.uniform('mousePosition', mousePosition)
-	.uniform('simBoxSize', simulationBoxSize)
-	.texture('heatLut', heatLutTexture)
+	.uniform('u_mouse_position', mousePosition)
+	.uniform('u_sim_box_size', simulationBoxSize)
+	.texture('u_heat_lut', heatLutTexture)
 	.draw();
 
 	// Switch what draw call to perform next frame
