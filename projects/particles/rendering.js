@@ -6,10 +6,10 @@
 
 var app;
 
-var spawnPattern = 'dot';
+var spawnPattern = 'dots';
 var requestReset = false;
 
-var mousePosition = vec2.create();
+var mousePosition = vec2.fromValues(-1.0, -1.0);
 var simulationBoxSize = vec2.fromValues(0.6, 0.65);
 
 var particleCount = 200000;
@@ -40,8 +40,9 @@ function onSetup(canvas) {
 
 	setupScene();
 
-	document.addEventListener('keydown', onKeydownEvent);
-	canvas.addEventListener('mousemove', mouseMovedInCanvas);
+	document.addEventListener('keydown', onKeydown);
+	canvas.addEventListener('mousemove', onMouseMoveInCanvas);
+	canvas.addEventListener('mouseleave', onMouseLeaveCanvas);
 
 	document.getElementById('reset-uniform-btn').addEventListener('click', function() {
 		spawnPattern = 'uniform';
@@ -67,25 +68,37 @@ function onResize(width, height) {
 
 var KEY_0 = 48;
 var KEY_9 = 57;
+var KEY_R = 82;
+var KEY_ESCAPE = 27;
 
-function onKeydownEvent(e) {
-	if (e.keyCode >= 48 && e.keyCode <= 57) {
-		var selected = e.keyCode - 48.0;
-		numBlurPasses = selected * selected;
+function onKeydown(e) {
+	if (e.keyCode >= KEY_0 && e.keyCode <= KEY_9) {
+		var selected = e.keyCode - KEY_0;
+		numBlurPasses = (selected * selected);
+	}
+
+	if (e.keyCode == KEY_ESCAPE) {
+		mousePosition[0] = -1.0;
+		mousePosition[1] = -1.0;
+	}
+
+	if (e.keyCode == KEY_R) {
+		resetParticles();
 	}
 }
 
-function startSimulation() {
-	simulationSpeed = 0.5;
-}
-
-function mouseMovedInCanvas(e) {
+function onMouseMoveInCanvas(e) {
 	// update mouse position
 	var rect = app.canvas.getBoundingClientRect();
 	var x = e.clientX - rect.left;
 	var y = e.clientY - rect.top;
 	mousePosition[0] = 2.0 * (x / app.canvas.width) - 1.0;
 	mousePosition[1] = 2.0 * (1.0 - y / app.canvas.height) - 1.0;
+}
+
+function onMouseLeaveCanvas(e) {
+	mousePosition[0] = -1.0;
+	mousePosition[1] = -1.0;
 }
 
 ////////////////////////////////////////////////////
@@ -186,24 +199,24 @@ function resetParticles() {
 		switch (spawnPattern) {
 
 			case 'dot':
-				positions[i + 0] = randomInRange(0.25, 0.3);
-				positions[i + 1] = randomInRange(0.25, 0.3);
+				positions[i + 0] = randomInRange(0.25, 0.30);
+				positions[i + 1] = randomInRange(0.25, 0.33);
 				positions[i + 2] = randomInRange(-0.25, 0.25);
 				break;
 
 			case 'dots':
 				var x = particleIndex / particleCount;
 				if (x <= 1.0 / 3.0) {
-					positions[i + 0] = randomInRange(0.27, 0.33);
-					positions[i + 1] = randomInRange(0.32, 0.35);
+					positions[i + 0] = randomInRange(0.28, 0.33);
+					positions[i + 1] = randomInRange(0.32, 0.40);
 					positions[i + 2] = randomInRange(-0.25, 0.25);
 				} else if (x <= 2.0 / 3.0) {
 					positions[i + 0] = randomInRange(-0.35, -0.30);
-					positions[i + 1] = randomInRange(0.45, 0.40);
+					positions[i + 1] = randomInRange(0.45, 0.53);
 					positions[i + 2] = randomInRange(-0.50, -0.25);
 				} else {
 					positions[i + 0] = randomInRange(-0.1, -0.05);
-					positions[i + 1] = randomInRange(-0.75, -0.70);
+					positions[i + 1] = randomInRange(-0.75, -0.67);
 					positions[i + 2] = randomInRange(-0.25, 0.25);
 				}
 				break;
