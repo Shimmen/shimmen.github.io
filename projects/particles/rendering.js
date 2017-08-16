@@ -51,6 +51,10 @@ function onSetup(canvas) {
 		spawnPattern = 'dot';
 		resetParticles();
 	});
+	document.getElementById('reset-dots-btn').addEventListener('click', function() {
+		spawnPattern = 'dots';
+		resetParticles();
+	});
 }
 
 function onResize(width, height) {
@@ -185,6 +189,23 @@ function resetParticles() {
 				positions[i + 0] = randomInRange(0.25, 0.3);
 				positions[i + 1] = randomInRange(0.25, 0.3);
 				positions[i + 2] = randomInRange(-0.25, 0.25);
+				break;
+
+			case 'dots':
+				var x = particleIndex / particleCount;
+				if (x <= 1.0 / 3.0) {
+					positions[i + 0] = randomInRange(0.27, 0.33);
+					positions[i + 1] = randomInRange(0.32, 0.35);
+					positions[i + 2] = randomInRange(-0.25, 0.25);
+				} else if (x <= 2.0 / 3.0) {
+					positions[i + 0] = randomInRange(-0.35, -0.30);
+					positions[i + 1] = randomInRange(0.45, 0.40);
+					positions[i + 2] = randomInRange(-0.50, -0.25);
+				} else {
+					positions[i + 0] = randomInRange(-0.1, -0.05);
+					positions[i + 1] = randomInRange(-0.75, -0.70);
+					positions[i + 2] = randomInRange(-0.25, 0.25);
+				}
 				break;
 
 			case 'uniform':
