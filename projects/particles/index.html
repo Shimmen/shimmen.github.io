@@ -17,7 +17,7 @@
 
 			<h1>
 				Particle Simulation
-				<small>2017-08-14 – Simon Moos</small>
+				<small>2017-08-17 – Simon Moos</small>
 			</h1>
 
 			<canvas id="canvas"></canvas>
@@ -37,6 +37,7 @@
 				layout(location = 1) in vec3 a_velocity;
 				uniform vec2 u_sim_box_size;
 				uniform vec2 u_mouse_position;
+				uniform bool u_simulation_paused;
 				out vec3 tf_position;
 				out vec3 tf_velocity;
 				void main() {
@@ -50,13 +51,13 @@
 					vec3 pos = a_position + vel;
 
 					// reset xy velocity if position is outside xy (canvas) border
-					if (pos.x <= -u_sim_box_size.x && dot(vel, vec3(+1, 0, 0)) < 0.0) vel.x = 0.0;
-					if (pos.x >= +u_sim_box_size.x && dot(vel, vec3(-1, 0, 0)) < 0.0) vel.x = 0.0;
-					if (pos.y <= -u_sim_box_size.y && dot(vel, vec3(0, +1, 0)) < 0.0) vel.y = 0.0;
-					if (pos.y >= +u_sim_box_size.y && dot(vel, vec3(0, -1, 0)) < 0.0) vel.y = 0.0;
+					if (pos.x <= -u_sim_box_size.x && dot(vel, vec3(+1, 0, 0)) < 0.0) { vel.x  = 0.0; vel.y *= 0.9; }
+					if (pos.x >= +u_sim_box_size.x && dot(vel, vec3(-1, 0, 0)) < 0.0) { vel.x  = 0.0; vel.y *= 0.9; }
+					if (pos.y <= -u_sim_box_size.y && dot(vel, vec3(0, +1, 0)) < 0.0) { vel.x *= 0.9; vel.y  = 0.0; }
+					if (pos.y >= +u_sim_box_size.y && dot(vel, vec3(0, -1, 0)) < 0.0) { vel.x *= 0.9; vel.y  = 0.0; }
 
 					// transform feedback
-					if (u_mouse_position.x != -1.0 && u_mouse_position.y != -1.0) {
+					if (!u_simulation_paused) {
 						tf_position = pos;
 						tf_velocity = vel;
 					} else {
@@ -145,13 +146,10 @@
 			</script>
 
 			<h2>About</h2>
-			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-			<pre><code>code &amp; stuff</code></pre>
-			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-
-			<h2>Conclusion</h2>
-			<p>If you like this article/project please share it:</p>
-			<p><a href="https://twitter.com/share" class="twitter-share-button" data-text="Template message" data-via="SimonMoos" data-lang="en" data-show-count="false">Tweet</a></p>
+			<p>This is a simple little particle simulation with 200 000 individually simulated particles. Use the <b>mouse cursor to interact</b> with the particles. You can pause and unpause the simulation with <b>p</b> and reset the particles by pressing <b>r</b>.</p>
+			<p>I also tried to blur the particles to get a plasma-like look with mediocre results. I left the blur in as an option though; you can change the blur amount with the number keys <b>0 through 9</b>.</p>
+			<p>So there you have it! It's not very complicated but it's a fun little thing. If you like this project please share it:</p>
+			<p><a href="https://twitter.com/share" class="twitter-share-button" data-text="Particle simulation" data-via="SimonMoos" data-lang="en" data-show-count="false">Tweet</a></p>
 			<p>If you want to see and hear more from me, follow me on Twitter and GitHub:</p>
 			<p>
 				<a href="https://twitter.com/SimonMoos" class="twitter-follow-button" data-lang="en" data-show-count="false">Follow @SimonMoos</a>
