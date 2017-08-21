@@ -83,6 +83,13 @@ section {
     font-weight: 700;
     font-style: italic;
     text-transform: lowercase; }
+  section h3 {
+    font-size: 1.3em;
+    padding: 15px 0;
+    font-family: "Space Mono", monospace;
+    font-weight: 700;
+    font-style: italic;
+    text-transform: lowercase; }
 
 code {
   font-family: "Source Code Pro", monospace;
@@ -152,6 +159,18 @@ header {
     left: 50%;
     margin-left: -35px;
     bottom: 5px; }
+
+.project {
+  display: block;
+  float: left;
+  width: 100%;
+  height: 170px;
+  margin-bottom: 15px; }
+  .project img {
+    display: block;
+    float: left;
+    height: 170px;
+    margin-right: 15px; }
 
 @media (max-width: 768px) {
   header li {

@@ -84,6 +84,13 @@ section {
     font-weight: 700;
     font-style: italic;
     text-transform: lowercase; }
+  section h3 {
+    font-size: 1.3em;
+    padding: 15px 0;
+    font-family: "Space Mono", monospace;
+    font-weight: 700;
+    font-style: italic;
+    text-transform: lowercase; }
 
 code {
   font-family: "Source Code Pro", monospace;

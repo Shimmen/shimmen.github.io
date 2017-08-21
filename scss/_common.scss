@@ -56,6 +56,15 @@ section {
 		font-style: italic;
 		text-transform: lowercase;
 	}
+
+	h3 {
+		font-size: 1.3em;
+		padding: 15px 0;
+		font-family: $display-font;
+		font-weight: 700;
+		font-style: italic;
+		text-transform: lowercase;
+	}
 }
 
 code {
@@ -97,4 +106,3 @@ footer {
 	font-size: 0.8em;
 
 }
-

@@ -65,6 +65,25 @@ header {
 	}
 }
 
+.project {
+
+	$list-item-height: 170px;
+
+	display: block;
+	float:left;
+	width: 100%;
+	height: $list-item-height;
+	margin-bottom: 15px;
+
+	img {
+		display: block;
+		float: left;
+		height: $list-item-height;
+		margin-right: 15px;
+	}
+
+}
+
 @include mobile {
 
 	header {
