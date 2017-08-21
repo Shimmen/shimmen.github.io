@@ -27,10 +27,8 @@ header {
 	color: #ff4444;
 }
 
-#fullscreen-btn {
+button {
 	display: block;
-	float: right;
-
 	cursor: pointer;
 
 	margin: 0;
@@ -44,6 +42,10 @@ header {
 	border: 0;
 	color: $bg-color;
 	background-color: $code-background;
+}
+
+#fullscreen-btn {
+	float: right;
 }
 
 section {
@@ -64,6 +66,7 @@ section {
 		font-family: $display-font;
 		font-weight: 700;
 		font-style: italic;
+		text-transform: lowercase;
 
 		small {
 			display: block;
@@ -74,6 +77,10 @@ section {
 			color: #444;
 			margin-top: 14px;
 		}
+	}
+
+	b {
+		font-weight: 700;
 	}
 
 }

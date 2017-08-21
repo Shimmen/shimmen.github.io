@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>particle simulation – simon moos</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="../../favicon.ico">
+		<link rel="stylesheet" href="../../css/project.css">
+	</head>
+	<body>
+
+		<header>
+			<h1><a href="/">Simon Moos</a></h1>
+		</header>
+
+		<section>
+
+			<h1>
+				Particle Simulation
+				<small>2017-08-20 – Simon Moos</small>
+			</h1>
+
+			<canvas id="canvas"></canvas>
+			<button type="button" id="fullscreen-btn" onclick="goFullscreen()">Go Fullscreen</button>
+			<div>
+				<label>Reset particles as</label>
+				<button type="button" style="display: inline;" id="reset-dots-btn">Three dots</button>
+				<button type="button" style="display: inline;" id="reset-dot-btn">One dot</button>
+				<button type="button" style="display: inline;" id="reset-uniform-btn">Uniform field</button>
+			</div>
+
+			<script type="x-shader/x-vertex" id="particles-vs">
+				#version 300 es
+				const float G = 1.0 / 30000.0;
+				const float M = 0.7; // of cursor, so to speak
+				layout(location = 0) in vec3 a_position;
+				layout(location = 1) in vec3 a_velocity;
+				uniform vec2 u_sim_box_size;
+				uniform vec2 u_mouse_position;
+				uniform bool u_simulation_paused;
+				out vec3 tf_position;
+				out vec3 tf_velocity;
+				void main() {
+					// simulate
+					vec3 mousePos = vec3(u_mouse_position, 0.0);
+					vec3 toMouse = mousePos - a_position;
+					float r2 = max(0.01, dot(toMouse, toMouse));
+					vec3 acceleration = G * M * normalize(toMouse) / r2;
+
+					vec3 vel = a_velocity + acceleration;
+					vec3 pos = a_position + vel;
+
+					// reset xy velocity if position is outside xy (canvas) border
+					if (pos.x <= -u_sim_box_size.x && dot(vel, vec3(+1, 0, 0)) < 0.0) { vel.x  = 0.0; vel.y *= 0.9; }
+					if (pos.x >= +u_sim_box_size.x && dot(vel, vec3(-1, 0, 0)) < 0.0) { vel.x  = 0.0; vel.y *= 0.9; }
+					if (pos.y <= -u_sim_box_size.y && dot(vel, vec3(0, +1, 0)) < 0.0) { vel.x *= 0.9; vel.y  = 0.0; }
+					if (pos.y >= +u_sim_box_size.y && dot(vel, vec3(0, -1, 0)) < 0.0) { vel.x *= 0.9; vel.y  = 0.0; }
+
+					// transform feedback
+					if (!u_simulation_paused) {
+						tf_position = pos;
+						tf_velocity = vel;
+					} else {
+						tf_position = a_position;
+						tf_velocity = a_velocity;
+					}
+
+					gl_PointSize = 2.0;
+					gl_Position = vec4(pos, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="particles-fs">
+				#version 300 es
+				precision highp float;
+				in vec3 tf_position;
+				in vec3 tf_velocity;
+				uniform sampler2D u_heat_lut;
+				out vec4 fragColor;
+				void main() {
+					// calculate color from velocity
+					float speedValue = clamp(length(tf_velocity) * 38.0, 0.15, 1.0);
+					vec3 color = texture(u_heat_lut, vec2(speedValue, 0.5)).rgb;
+
+					// calculate alpha depending on z-distance (far away -> more faded)
+					float alpha = clamp(0.75 + 0.25 * tf_position.z, 0.1, 1.0);
+
+					// premultiply alpha
+					fragColor = vec4(color * alpha, alpha);
+				}
+			</script>
+
+			<script type="x-shader/x-vertex" id="quad-vs">
+				#version 300 es
+				layout(location = 0) in vec2 a_position;
+				out vec2 v_uv;
+				void main() {
+					v_uv = a_position * 0.5 + 0.5;
+					gl_Position = vec4(a_position, 0.0, 1.0);
+				}
+			</script>
+
+			<script type="x-shader/x-fragment" id="blur-h-fs">
+				#version 300 es
+				precision highp float;
+				const float offset[3] = float[](0.0, 1.3846153846, 3.2307692308);
+				const float weight[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+				in vec2 v_uv;
+				uniform sampler2D u_texture;
+				out vec4 fragColor;
+				void main() {
+					fragColor = texture(u_texture, v_uv) * weight[0];
+					for (int i = 1; i < 3; ++i) {
+						vec2 offset = vec2(offset[i], 0) / vec2(textureSize(u_texture, 0));
+						fragColor += texture(u_texture, v_uv + offset) * weight[i];
+						fragColor += texture(u_texture, v_uv - offset) * weight[i];
+					}
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="blur-v-fs">
+				#version 300 es
+				precision highp float;
+				const float offset[3] = float[](0.0, 1.3846153846, 3.2307692308);
+				const float weight[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+				in vec2 v_uv;
+				uniform sampler2D u_texture;
+				out vec4 fragColor;
+				void main() {
+					fragColor = texture(u_texture, v_uv) * weight[0];
+					for (int i = 1; i < 3; ++i) {
+						vec2 offset = vec2(0, offset[i]) / vec2(textureSize(u_texture, 0));
+						fragColor += texture(u_texture, v_uv + offset) * weight[i];
+						fragColor += texture(u_texture, v_uv - offset) * weight[i];
+					}
+				}
+			</script>
+
+			<script type="x-shader/x-fragment" id="blit-fs">
+				#version 300 es
+				precision highp float;
+				in vec2 v_uv;
+				uniform sampler2D u_texture;
+				out vec4 fragColor;
+				void main() {
+					fragColor = texture(u_texture, v_uv);
+				}
+			</script>
+
+			<h2>About</h2>
+			<p>This is a simple little particle system simulation with 200 000 individually simulated particles. Use the <b>mouse cursor to interact</b> with the particles. You can pause and unpause the simulation with <b>p</b> and reset the particles by pressing <b>r</b>.</p>
+			<p>I also tried to blur the particles to get a plasma-like look, with mediocre results. I left the blur in as an option though; you can change the blur amount with the number keys <b>0 through 9</b>.</p>
+			<p>The simulation is run on the GPU using WebGL 2 and transform feedback. To help manage WebGL I also used <a href="https://github.com/tsherif/picogl.js">PicoGL</a>, which is a great library that you should check out!</p>
+			<p>So there you have it! It's not very complicated but it's a fun little thing. If you like this project please share it:</p>
+			<p><a href="https://twitter.com/share" class="twitter-share-button" data-text="Particle simulation" data-via="SimonMoos" data-lang="en" data-show-count="false">Tweet</a></p>
+			<p>If you want to see and hear more from me, follow me on Twitter and GitHub:</p>
+			<p>
+				<a href="https://twitter.com/SimonMoos" class="twitter-follow-button" data-lang="en" data-show-count="false">Follow @SimonMoos</a>
+				<iframe src="https://ghbtns.com/github-btn.html?user=Shimmen&type=follow&count=false" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+			</p>
+
+		</section>
+
+		<footer>
+			<p>Simon Moos (c) 2017</p>
+		</footer>
+
+		<script src="../picogl.min.js" charset="utf-8"></script>
+		<script src="../gl-matrix-min.js" charset="utf-8"></script>
+		<script src="rendering.js" charset="utf-8"></script>
+		<script src="../base.js" charset="utf-8"></script>
+
+		<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+		<script>
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+			ga('create', 'UA-98613739-1', 'auto');
+			ga('send', 'pageview');
+		</script>
+	</body>
+</html>

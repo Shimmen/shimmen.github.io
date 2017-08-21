@@ -1,11 +1,11 @@
-@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i,700|Source+Code+Pro");
 /* http://meyerweb.com/eric/tools/css/reset/
    v2.0 | 20110126
    License: none (public domain)
 */
-@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
-@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
-@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i|Source+Code+Pro");
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i,700|Source+Code+Pro");
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i,700|Source+Code+Pro");
+@import url("https://fonts.googleapis.com/css?family=Space+Mono:400,400i,700|Open+Sans:400,400i,700|Source+Code+Pro");
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -138,9 +138,8 @@ header h1 {
 #no-webgl2-error {
   color: #ff4444; }
 
-#fullscreen-btn {
+button {
   display: block;
-  float: right;
   cursor: pointer;
   margin: 0;
   padding: 6px 10px;
@@ -153,13 +152,17 @@ header h1 {
   color: #eee;
   background-color: #444; }
 
+#fullscreen-btn {
+  float: right; }
+
 section h1 {
   display: block;
   padding: 65px 0 25px 0;
   font-size: 2.5em;
   font-family: "Space Mono", monospace;
   font-weight: 700;
-  font-style: italic; }
+  font-style: italic;
+  text-transform: lowercase; }
   @media (max-width: 768px) {
     section h1 {
       padding: 40px 0 25px 0;
@@ -173,5 +176,7 @@ section h1 {
     font-style: normal;
     color: #444;
     margin-top: 14px; }
+section b {
+  font-weight: 700; }
 
 /*# sourceMappingURL=project.css.map */
