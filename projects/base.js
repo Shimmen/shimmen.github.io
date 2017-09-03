@@ -1,13 +1,20 @@
 
 var webglActive = true; // initially assume it works
 
+function removeDemoElements() {
+	var elemsToRemove = document.getElementsByClassName('remove-if-no-gl');
+
+	// Remove in reverse since the HTMLCollection elemsToRemove is updated as elements are removed
+	for (var i = elemsToRemove.length - 1; i >= 0; i--) {
+		elemsToRemove[i].parentNode.removeChild(elemsToRemove[i]);
+	}
+}
+
 var canvas = document.getElementById('canvas');
 if (!canvas) {
 	alert('The canvas is missing! It\'s not supposed to be missing.');
 	webglActive = false;
-
-	var btn = document.getElementById('fullscreen-btn');
-	btn.parentNode.removeChild(btn);
+	removeDemoElements();
 }
 
 {
@@ -22,8 +29,7 @@ if (!canvas) {
 			'It should work on most modern desktop browsers though.';
 		canvas.parentNode.replaceChild(message, canvas);
 
-		var btn = document.getElementById('fullscreen-btn');
-		btn.parentNode.removeChild(btn);
+		removeDemoElements();
 	}
 }
 
