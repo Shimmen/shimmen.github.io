@@ -24,21 +24,22 @@ var camera = {
 ////////////////////////////////////////////////////
 
 var cameraUniformBuffer;
-
-var mainShader;
 var gBuffer;
 
-var ssaoShader;
-var ssaoNoiseTextureSize = 4;
-var ssaoNoiseTexture;
-var ssaoDrawCall;
+var ssao = {
+	framebuffer: null,
+	drawCall: null,
 
-var ssaoRadius = 0.8;
-var ssaoKernelSize = 16;
-var ssaoKernel = new Float32Array(ssaoKernelSize * 3);
+	noiseTextureSize: 4,
+	noiseTexture: null,
+
+	radius: 0.8,
+	kernelSize: 16,
+	kernel: null
+};
 
 var buddha = {
-	drawCall: undefined,
+	drawCall: null,
 	worldFromLocal: mat4.create(),
 	currentRotation: Math.PI
 };
@@ -56,8 +57,8 @@ function onSetup(canvas) {
 	.depthTest()
 	.cullBackfaces();
 
-	mainShader = makeShader('main-vs', 'main-fs');
-	ssaoShader = makeShader('ssao-vs', 'ssao-fs');
+	var mainShader = makeShader('main-vs', 'main-fs');
+	var ssaoShader = makeShader('ssao-vs', 'ssao-fs');
 
 	cameraUniformBuffer = app.createUniformBuffer([
 		PicoGL.FLOAT_MAT4, /* u_view_from_world */
@@ -83,111 +84,84 @@ function onSetup(canvas) {
 		buddha.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
 	});
 
+	// (fst = full-screen triangle)
 	var fstPositions = app.createVertexBuffer(PicoGL.FLOAT, 2, new Float32Array([-1, -1, +3, -1, -1, +3]));
 	var fstVertexArray = app.createVertexArray()
 	.vertexAttributeBuffer(0, fstPositions);
-	ssaoDrawCall = app.createDrawCall(ssaoShader, fstVertexArray);
-	ssaoDrawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+	ssao.drawCall = app.createDrawCall(ssaoShader, fstVertexArray);
+	ssao.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
 
 	gBuffer = app.createFramebuffer(app.width, app.height)
 	.colorTarget(0)
 	.colorTarget(1)
 	.depthTarget();
 
-	// Generate noise texture (for SSAO)
-	{
-		var size = ssaoNoiseTextureSize;
-		var noiseData = new Uint8Array(size * size * 3);
+	ssao.framebuffer = app.createFramebuffer(app.width, app.height)
+	.colorTarget(0);
 
-		for (var i = 0; i < size * size; i++) {
-
-			var x = Math.random() * 2.0 - 1.0;
-			var y = Math.random() * 2.0 - 1.0;
-			var len = Math.sqrt(x*x + y*y);
-
-			noiseData[3 * i + 0] = (x / len * 0.5 + 0.5) * 256.0;
-			noiseData[3 * i + 1] = (y / len * 0.5 + 0.5) * 256.0;
-			noiseData[3 * i + 2] = 0.0;
-		}
-
-		ssaoNoiseTexture = app.createTexture2D(noiseData, size, size, {
-			format: PicoGL.RGB, internalFormat: PicoGL.RGB8,
-			minFilter: PicoGL.NEAREST, magFilter: PicoGL.NEAREST // TODO: should bilinear be used?
-		});
-
-		ssaoDrawCall.texture('u_ssao_noise_texture', ssaoNoiseTexture);
-	}
-
-	// Generate SSAO kernel
-	{
-		for (var i = 0; i < ssaoKernelSize; i++) {
-
-			var x = Math.random() * 2.0 - 1.0;
-			var y = Math.random() * 2.0 - 1.0;
-			var z = Math.random();
-
-			var len = Math.sqrt(x*x + y*y + z*z);
-
-			var scale = i / ssaoKernelSize;
-			scale = lerp(0.1, 1.0, scale * scale);
-
-			ssaoKernel[3 * i + 0] = x / len * scale;
-			ssaoKernel[3 * i + 1] = y / len * scale;
-			ssaoKernel[3 * i + 2] = z / len * scale;
-		}
-
-		ssaoDrawCall.uniform('u_ssao_kernel_size', ssaoKernelSize);
-		ssaoDrawCall.uniform('u_ssao_kernel[0]', ssaoKernel);
-		ssaoDrawCall.uniform('u_ssao_radius', ssaoRadius);
-	}
-
-	// Set up mouse-drag listener TODO: Fix!
-/*
-	canvas.onmousedown = function() {
-		document.onmousemove = function(e) {
-
-			mouse.dx = (mouse.lastX !== undefined) ? mouse.lastX - e.screenX : 0.0;
-			mouse.dy = (mouse.lastY !== undefined) ? mouse.lastY - e.screenY : 0.0;
-
-			if (mouse.dx !== 0.0 || mouse.dy !== 0.0) {
-				var toCamera = vec3.create();
-				vec3.subtract(toCamera, camera.targetPoint, camera.pos);
-
-				var rot = quat.create();
-				quat.fromEuler(rot, 0, mouse.dx * 0.5, -mouse.dy * 0.5);
-				vec3.transformQuat(toCamera, toCamera, rot);
-
-				camera.pos = vec3.add(camera.pos, camera.targetPoint, toCamera);
-				mat4.lookAt(viewFromWorldMatrix, camera.pos, camera.targetPoint, vec3.fromValues(0, 1, 0));
-			}
-
-			mouse.lastX = e.screenX;
-			mouse.lastY = e.screenY;
-
-			//console.log('Mouse moved (' + mouse.dx + ', ' + mouse.dy + ')');
-			// console.log(mouse.dx + " - " + mouse.dy);
-		}
-		document.onmouseup = function(e){
-			document.onmousemove = function(){};
-			mouse.lastX = undefined;
-			mouse.lastY = undefined;
-			mouse.dx = 0.0;
-			mouse.dy = 0.0;
-		}
-	}
-*/
+	generateSsaoNoiseTexture();
+	generateSsaoKernel();
 }
 
 function onResize(width, height) {
 	app.resize(width, height);
 	gBuffer.resize(width, height);
+	ssao.framebuffer.resize(width, height);
 
 	updateCamera();
 
-	var scaleX = width / ssaoNoiseTextureSize;
-	var scaleY = height / ssaoNoiseTextureSize;
+	var scaleX = width / ssao.noiseTextureSize;
+	var scaleY = height / ssao.noiseTextureSize;
 	var scale = new Float32Array([scaleX, scaleY]);
-	ssaoDrawCall.uniform('u_ssao_noise_scale', scale);
+	ssao.drawCall.uniform('u_ssao_noise_scale', scale);
+}
+
+////////////////////////////////////////////////////
+
+function generateSsaoNoiseTexture() {
+	var size = ssao.noiseTextureSize;
+	var noiseData = new Uint8Array(size * size * 3);
+
+	for (var i = 0; i < size * size; i++) {
+
+		var x = Math.random() * 2.0 - 1.0;
+		var y = Math.random() * 2.0 - 1.0;
+		var len = Math.sqrt(x*x + y*y);
+
+		noiseData[3 * i + 0] = (x / len * 0.5 + 0.5) * 256.0;
+		noiseData[3 * i + 1] = (y / len * 0.5 + 0.5) * 256.0;
+		noiseData[3 * i + 2] = 0.0;
+	}
+
+	ssao.noiseTexture = app.createTexture2D(noiseData, size, size, {
+		format: PicoGL.RGB, internalFormat: PicoGL.RGB8,
+		minFilter: PicoGL.NEAREST, magFilter: PicoGL.NEAREST
+	});
+
+	ssao.drawCall.texture('u_ssao_noise_texture', ssao.noiseTexture);
+}
+
+function generateSsaoKernel() {
+	ssao.kernel = new Float32Array(ssao.kernelSize * 3);
+	for (var i = 0; i < ssao.kernelSize; i++) {
+
+		var x = Math.random() * 2.0 - 1.0;
+		var y = Math.random() * 2.0 - 1.0;
+		var z = Math.random();
+
+		var len = Math.sqrt(x*x + y*y + z*z);
+
+		var scale = i / ssao.kernelSize;
+		scale = lerp(0.1, 1.0, scale * scale);
+
+		ssao.kernel[3 * i + 0] = x / len * scale;
+		ssao.kernel[3 * i + 1] = y / len * scale;
+		ssao.kernel[3 * i + 2] = z / len * scale;
+	}
+
+	ssao.drawCall.uniform('u_ssao_kernel_size', ssao.kernelSize);
+	ssao.drawCall.uniform('u_ssao_kernel[0]', ssao.kernel);
+	ssao.drawCall.uniform('u_ssao_radius', ssao.radius);
 }
 
 ////////////////////////////////////////////////////
@@ -202,14 +176,14 @@ function setupListeners() {
 		sliderLabel.innerHTML = '(' + rounded + 'm)';
 	}
 
-	slider.value = ssaoRadius;
-	setLabelText(ssaoRadius);
+	slider.value = ssao.radius;
+	setLabelText(ssao.radius);
 
 	slider.addEventListener('input', function(e) {
-		ssaoRadius = e.target.valueAsNumber;
-		setLabelText(ssaoRadius);
-		if (ssaoDrawCall) {
-			ssaoDrawCall.uniform('u_ssao_radius', ssaoRadius);
+		ssao.radius = e.target.valueAsNumber;
+		setLabelText(ssao.radius);
+		if (ssao.drawCall) {
+			ssao.drawCall.uniform('u_ssao_radius', ssao.radius);
 		}
 	})
 
@@ -273,7 +247,7 @@ function onRender() {
 	// Perform SSAO pass
 	app.defaultDrawFramebuffer();
 	{
-		ssaoDrawCall
+		ssao.drawCall
 		.texture('u_normal_depth_texture', gBuffer.colorTextures[1])
 		.draw();
 	}
