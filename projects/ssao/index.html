@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>ssao – simon moos</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="../../favicon.ico">
+		<link rel="stylesheet" href="../../css/project.css">
+	</head>
+	<body>
+
+		<header>
+			<h1><a href="/">Simon Moos</a></h1>
+		</header>
+
+		<section>
+
+			<h1>
+				<span style="text-transform: none;">SSAO</span> demo
+				<small>2017-10-XX – Simon Moos</small>
+			</h1>
+
+			<canvas id="canvas"></canvas>
+			<button type="button" id="fullscreen-btn" class="remove-if-no-gl" onclick="goFullscreen()">Go Fullscreen</button>
+			<div class="remove-if-no-gl">
+				<label>SSAO kernel radius:</label>
+				<input id="kernelRadiusSlider" type="range" min="0.02" max="1.50" step="any">
+				<label id="kernelRadiusLabel"></label>
+			</div>
+
+			<script type="x-shader/x-vertex" id="main-vs">
+				#version 300 es
+
+				layout(location = 0) in vec3 a_position;
+				layout(location = 1) in vec3 a_normal;
+
+				layout(std140) uniform CameraUniforms {
+					mat4 u_view_from_world;
+					mat4 u_projection_from_view;
+					mat4 u_view_from_projection;
+				};
+
+				uniform mat4 u_world_from_local;
+
+				out vec3 v_normal;
+
+				void main() {
+					v_normal = mat3(u_world_from_local) * a_normal; // only perform uniform scaling!
+					gl_Position = u_projection_from_view * u_view_from_world * u_world_from_local * vec4(a_position, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="main-fs">
+				#version 300 es
+				precision highp float;
+
+				const vec3 light_position = vec3(0, -0.5, 1);
+
+				layout(std140) uniform CameraUniforms {
+					mat4 u_view_from_world;
+					mat4 u_projection_from_view;
+					mat4 u_view_from_projection;
+				};
+
+				in vec3 v_normal;
+
+				layout(location = 0) out vec4 o_frag_color;
+				layout(location = 1) out vec4 o_view_normal_depth;
+
+				void main() {
+					//const vec3 L = normalize(-light_position);
+					vec3 N = normalize(v_normal);
+					//float LdotN = max(dot(L, N), 0.0);
+
+					//vec3 color = vec3(1, 1, 1);
+					//color *= max(LdotN, 0.25);
+
+					//o_frag_color = vec4(color, 1);
+
+					vec3 packed_view_normal = normalize(mat3(u_view_from_world) * v_normal) * vec3(0.5) + vec3(0.5);
+					o_view_normal_depth = vec4(packed_view_normal, gl_FragCoord.z);
+				}
+			</script>
+
+			<script type="x-shader/x-vertex" id="ssao-vs">
+				#version 300 es
+
+				layout(location = 0) in vec2 a_position;
+				out vec2 v_tex_coord;
+
+				void main() {
+					v_tex_coord = a_position * vec2(0.5) + vec2(0.5);
+					gl_Position = vec4(a_position, 0, 1);
+				}
+			</script>
+			<script type="x-shader/x-vertex" id="ssao-fs">
+				#version 300 es
+				precision highp float;
+
+				layout(std140) uniform CameraUniforms {
+					mat4 u_view_from_world;
+					mat4 u_projection_from_view;
+					mat4 u_view_from_projection;
+				};
+
+				uniform sampler2D u_normal_depth_texture;
+
+				const int SSAO_KERNEL_MAX_SIZE = 32;
+				uniform int u_ssao_kernel_size;
+				uniform vec3 u_ssao_kernel[SSAO_KERNEL_MAX_SIZE];
+				uniform sampler2D u_ssao_noise_texture;
+				uniform vec2 u_ssao_noise_scale;
+				uniform float u_ssao_radius;
+
+				in vec2 v_tex_coord;
+				layout(location = 0) out vec4 o_frag_color;
+
+				void main() {
+					vec4 norm_depth = texture(u_normal_depth_texture, v_tex_coord);
+					float depth = norm_depth.a;
+					vec3 normal = normalize(norm_depth.xyz * vec3(2.0) - vec3(1.0));
+
+					// Get view space position of fragment
+					vec4 projected_pos = vec4(v_tex_coord * vec2(2.0) - vec2(1.0), depth, 1.0);
+					vec4 origin = u_view_from_projection * projected_pos;
+					origin.xyz /= origin.z;
+
+					// Set up tbn matrix for orienting the noise kernel (with random rotation from noise texture)
+					vec2 rvec_coords = v_tex_coord * u_ssao_noise_scale;
+					vec3 rvec = texture(u_ssao_noise_texture, rvec_coords).xyz * vec3(2.0) - vec3(1.0);
+					rvec = normalize(rvec); rvec.z = 0.0;
+					vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
+					vec3 bitangent = cross(normal, tangent);
+					mat3 tbn = mat3(tangent, bitangent, normal);
+
+					// Perform SSAO kernel convolution
+					float occlusion = 0.0;
+					for (int i = 0; i < u_ssao_kernel_size; ++i) {
+
+						// Calculate sample view space position
+						vec3 sample_pos = tbn * u_ssao_kernel[i];
+						sample_pos = sample_pos * u_ssao_radius + origin.xyz;
+
+						// Project sample position
+						vec4 offset = vec4(sample_pos, 1.0);
+						offset = u_projection_from_view * offset;
+						offset.xy /= offset.w;
+						offset.xy = offset.xy * vec2(0.5) + vec2(0.5);
+
+						// Get sample depth
+						float sample_depth = texture(u_normal_depth_texture, offset.xy).a;
+
+						// Perform range check & accumulate occlusion
+						float range_check = abs(origin.z - sample_depth) < u_ssao_radius ? 1.0 : 0.0;
+						occlusion += (sample_depth <= sample_pos.z ? 1.0 : 0.0) * range_check;
+
+					}
+					occlusion = 1.0 - (occlusion / float(u_ssao_kernel_size));
+
+					float bright = (1.0 - occlusion);// * (1.0 - occlusion);
+					o_frag_color = vec4(bright, bright, bright, 1.0);
+				}
+			</script>
+
+			<h2>About</h2>
+			<p>TODO!</p>
+			<p><a href="https://twitter.com/share" class="twitter-share-button" data-text="WebGL SSAO demo" data-via="SimonMoos" data-lang="en" data-show-count="false">Tweet</a></p>
+			<p>If you want to see and hear more from me, follow me on Twitter and GitHub:</p>
+			<p>
+				<a href="https://twitter.com/SimonMoos" class="twitter-follow-button" data-lang="en" data-show-count="false">Follow @SimonMoos</a>
+				<iframe src="https://ghbtns.com/github-btn.html?user=Shimmen&type=follow&count=false" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+			</p>
+
+		</section>
+
+		<footer>
+			<p>Simon Moos (c) 2017</p>
+		</footer>
+
+		<script src="../picogl.min.js" charset="utf-8"></script>
+		<script src="../gl-matrix-min.js" charset="utf-8"></script>
+		<script src="../webgl-obj-loader.js" charset="utf-8"></script>
+		<script src="rendering.js" charset="utf-8"></script>
+		<script src="../base.js" charset="utf-8"></script>
+
+		<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+		<script>
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+			ga('create', 'UA-98613739-1', 'auto');
+			ga('send', 'pageview');
+		</script>
+	</body>
+</html>

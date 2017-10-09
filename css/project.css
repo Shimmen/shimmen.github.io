@@ -152,6 +152,13 @@ button {
   color: #eee;
   background-color: #444; }
 
+input[type='range'] {
+  display: inline;
+  cursor: pointer;
+  height: 11px;
+  margin: 0 10px;
+  padding: 0; }
+
 #fullscreen-btn {
   float: right; }
 
