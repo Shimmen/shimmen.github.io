@@ -26,6 +26,8 @@ var camera = {
 var cameraUniformBuffer;
 var gBuffer;
 
+var lightingDrawCall;
+
 var ssao = {
 	framebuffer: null,
 	drawCall: null,
@@ -33,9 +35,11 @@ var ssao = {
 	noiseTextureSize: 4,
 	noiseTexture: null,
 
-	radius: 0.8,
+	radius: 2.5,
 	kernelSize: 16,
-	kernel: null
+	kernel: null,
+
+	power: 3.5
 };
 
 var buddha = {
@@ -57,8 +61,9 @@ function onSetup(canvas) {
 	.depthTest()
 	.cullBackfaces();
 
-	var mainShader = makeShader('main-vs', 'main-fs');
+	var geometryShader = makeShader('geometry-vs', 'geometry-fs');
 	var ssaoShader = makeShader('ssao-vs', 'ssao-fs');
+	var lightingShader = makeShader('lighting-vs', 'lighting-fs');
 
 	cameraUniformBuffer = app.createUniformBuffer([
 		PicoGL.FLOAT_MAT4, /* u_view_from_world */
@@ -80,7 +85,7 @@ function onSetup(canvas) {
 		.vertexAttributeBuffer(1, normals)
 		.indexBuffer(indices);
 
-		buddha.drawCall = app.createDrawCall(mainShader, buddhaVertexArray);
+		buddha.drawCall = app.createDrawCall(geometryShader, buddhaVertexArray);
 		buddha.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
 	});
 
@@ -90,6 +95,7 @@ function onSetup(canvas) {
 	.vertexAttributeBuffer(0, fstPositions);
 	ssao.drawCall = app.createDrawCall(ssaoShader, fstVertexArray);
 	ssao.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+	lightingDrawCall = app.createDrawCall(lightingShader, fstVertexArray);
 
 	gBuffer = app.createFramebuffer(app.width, app.height)
 	.colorTarget(0)
@@ -162,31 +168,36 @@ function generateSsaoKernel() {
 	ssao.drawCall.uniform('u_ssao_kernel_size', ssao.kernelSize);
 	ssao.drawCall.uniform('u_ssao_kernel[0]', ssao.kernel);
 	ssao.drawCall.uniform('u_ssao_radius', ssao.radius);
+	ssao.drawCall.uniform('u_ssao_power', ssao.power);
 }
 
 ////////////////////////////////////////////////////
 
-function setupListeners() {
+function sliderListener(sliderId, ssaoProperty, uniformName, labelId, unit) {
 
-	var slider = document.getElementById('kernelRadiusSlider');
-	var sliderLabel = document.getElementById('kernelRadiusLabel');
-
-	function setLabelText(value) {
+	function setLabelText(label, value) {
 		var rounded = value.toFixed(2);
-		sliderLabel.innerHTML = '(' + rounded + 'm)';
+		label.innerHTML = '(' + rounded + unit + ')';
 	}
 
-	slider.value = ssao.radius;
-	setLabelText(ssao.radius);
+	var slider = document.getElementById(sliderId);
+	var sliderLabel = document.getElementById(labelId);
+
+	slider.value = ssao[ssaoProperty];
+	setLabelText(sliderLabel, ssao[ssaoProperty]);
 
 	slider.addEventListener('input', function(e) {
-		ssao.radius = e.target.valueAsNumber;
-		setLabelText(ssao.radius);
+		ssao[ssaoProperty] = e.target.valueAsNumber;
+		setLabelText(sliderLabel, ssao[ssaoProperty]);
 		if (ssao.drawCall) {
-			ssao.drawCall.uniform('u_ssao_radius', ssao.radius);
+			ssao.drawCall.uniform(uniformName, ssao[ssaoProperty]);
 		}
-	})
+	});
+}
 
+function setupListeners() {
+	sliderListener('kernelRadiusSlider', 'radius', 'u_ssao_radius', 'kernelRadiusLabel', 'm');
+	sliderListener('ssaoPowerSlider', 'power', 'u_ssao_power', 'ssaoPowerLabel', '');
 }
 
 function updateCamera() {
@@ -236,20 +247,30 @@ function onRender() {
 	buddha.currentRotation += 0.007;
 	mat4.fromRotation(buddha.worldFromLocal, buddha.currentRotation, vec3.fromValues(0, 1, 0));
 
-	// Render scene
+	// Render scene into g-buffer
 	app.drawFramebuffer(gBuffer).clear();
-	{
-		buddha.drawCall
-		.uniform('u_world_from_local', buddha.worldFromLocal)
-		.draw();
-	}
+	buddha.drawCall
+	.uniform('u_world_from_local', buddha.worldFromLocal)
+	.draw();
+
+	var albedoTexture = gBuffer.colorTextures[0];
+	var normalDepthTexture = gBuffer.colorTextures[1];
 
 	// Perform SSAO pass
+	app.drawFramebuffer(ssao.framebuffer);
+	ssao.drawCall
+	.texture('u_normal_depth_texture', normalDepthTexture)
+	.draw();
+
+	var occlusionTexture = ssao.framebuffer.colorTextures[0];
+
+	// Final pass (lightning and post-process)
 	app.defaultDrawFramebuffer();
-	{
-		ssao.drawCall
-		.texture('u_normal_depth_texture', gBuffer.colorTextures[1])
-		.draw();
-	}
+	lightingDrawCall
+	.texture('u_albedo', albedoTexture)
+	.texture('u_normal', normalDepthTexture)
+	.texture('u_occlusion', occlusionTexture)
+	.uniform('u_blur_size', ssao.noiseTextureSize)
+	.draw();
 
 }
