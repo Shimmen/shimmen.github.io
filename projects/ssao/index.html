@@ -33,6 +33,14 @@
 					<input id="ssaoPowerSlider" type="range" min="1.0" max="10.0" step="any">
 					<label id="ssaoPowerLabel"></label>
 				</div>
+				<div>
+					<label>Direct lighting:</label>
+					<input type="checkbox" id="directLightingCheckbox" checked="true">
+				</div>
+				<div>
+					<label>SSAO enabled:</label>
+					<input type="checkbox" id="ssaoEnabledCheckbox" checked="true">
+				</div>
 			</div>
 
 			<script type="x-shader/x-vertex" id="geometry-vs">
@@ -162,7 +170,7 @@
 				}
 			</script>
 
-			<script type="x-shader/x-vertex" id="lighting-vs">
+			<script type="x-shader/x-vertex" id="post-vs">
 				#version 300 es
 
 				layout(location = 0) in vec2 a_position;
@@ -173,7 +181,7 @@
 					gl_Position = vec4(a_position, 0, 1);
 				}
 			</script>
-			<script type="x-shader/x-fragment" id="lighting-fs">
+			<script type="x-shader/x-fragment" id="post-fs">
 				#version 300 es
 				precision highp float;
 
@@ -181,6 +189,8 @@
 				uniform sampler2D u_normal;
 				uniform sampler2D u_occlusion;
 				uniform int u_blur_size;
+				uniform bool u_enable_direct_lighting;
+				uniform bool u_enable_ssao;
 
 				const vec3 light_view_position = vec3(-8, 0, -5);
 
@@ -202,7 +212,10 @@
 					}
 
 					float occlusion = result / float(u_blur_size * u_blur_size);
-					return occlusion;
+
+					// TODO: pow:ing the occlusion seems to make the blur-noise less visible,
+					// but it also affects the appearance of the SSAO.
+					return occlusion;// * occlusion * occlusion;
 				}
 
 				void main() {
@@ -214,8 +227,8 @@
 					float LdotN = max(dot(L, N), 0.0);
 
 					vec3 color = texture(u_albedo, v_tex_coord).rgb;
-					color *= max(LdotN, 0.25);
-					color *= (1.0 - getOcclusionFactor());
+					color *= (u_enable_direct_lighting) ? max(LdotN, 0.25) : 1.0;
+					color *= (u_enable_ssao) ? (1.0 - getOcclusionFactor()) : 1.0;
 
 					o_frag_color = vec4(color, 1);
 				}

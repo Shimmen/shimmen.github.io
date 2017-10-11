@@ -159,6 +159,13 @@ input[type='range'] {
   margin: 0 10px;
   padding: 0; }
 
+input[type='checkbox'] {
+  display: inline;
+  cursor: pointer;
+  height: 13px;
+  margin: 0 8px;
+  padding: 0; }
+
 #fullscreen-btn {
   float: right; }
 

@@ -26,8 +26,6 @@ var camera = {
 var cameraUniformBuffer;
 var gBuffer;
 
-var lightingDrawCall;
-
 var ssao = {
 	framebuffer: null,
 	drawCall: null,
@@ -48,6 +46,12 @@ var buddha = {
 	currentRotation: Math.PI
 };
 
+var post = {
+	drawCall: null,
+	directLighting: true,
+	ssaoEnabled: true
+};
+
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
 ////////////////////////////////////////////////////
@@ -63,7 +67,7 @@ function onSetup(canvas) {
 
 	var geometryShader = makeShader('geometry-vs', 'geometry-fs');
 	var ssaoShader = makeShader('ssao-vs', 'ssao-fs');
-	var lightingShader = makeShader('lighting-vs', 'lighting-fs');
+	var postShader = makeShader('post-vs', 'post-fs');
 
 	cameraUniformBuffer = app.createUniformBuffer([
 		PicoGL.FLOAT_MAT4, /* u_view_from_world */
@@ -93,9 +97,13 @@ function onSetup(canvas) {
 	var fstPositions = app.createVertexBuffer(PicoGL.FLOAT, 2, new Float32Array([-1, -1, +3, -1, -1, +3]));
 	var fstVertexArray = app.createVertexArray()
 	.vertexAttributeBuffer(0, fstPositions);
+
 	ssao.drawCall = app.createDrawCall(ssaoShader, fstVertexArray);
 	ssao.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
-	lightingDrawCall = app.createDrawCall(lightingShader, fstVertexArray);
+
+	post.drawCall = app.createDrawCall(postShader, fstVertexArray);
+	post.drawCall.uniform('u_enable_direct_lighting', post.directLighting);
+	post.drawCall.uniform('u_enable_ssao', post.ssaoEnabled);
 
 	gBuffer = app.createFramebuffer(app.width, app.height)
 	.colorTarget(0)
@@ -196,8 +204,26 @@ function sliderListener(sliderId, ssaoProperty, uniformName, labelId, unit) {
 }
 
 function setupListeners() {
+
 	sliderListener('kernelRadiusSlider', 'radius', 'u_ssao_radius', 'kernelRadiusLabel', 'm');
 	sliderListener('ssaoPowerSlider', 'power', 'u_ssao_power', 'ssaoPowerLabel', '');
+
+	var directLightingCheckbox = document.getElementById('directLightingCheckbox');
+	directLightingCheckbox.addEventListener('change', function(e) {
+		post.directLighting = e.target.checked;
+		if (post.drawCall) {
+			post.drawCall.uniform('u_enable_direct_lighting', post.directLighting);
+		}
+	});
+
+	var ssaoEnabledCheckbox = document.getElementById('ssaoEnabledCheckbox');
+	ssaoEnabledCheckbox.addEventListener('change', function(e) {
+		post.ssaoEnabled = e.target.checked;
+		if (post.drawCall) {
+			post.drawCall.uniform('u_enable_ssao', post.ssaoEnabled);
+		}
+	});
+
 }
 
 function updateCamera() {
@@ -266,7 +292,7 @@ function onRender() {
 
 	// Final pass (lightning and post-process)
 	app.defaultDrawFramebuffer();
-	lightingDrawCall
+	post.drawCall
 	.texture('u_albedo', albedoTexture)
 	.texture('u_normal', normalDepthTexture)
 	.texture('u_occlusion', occlusionTexture)
