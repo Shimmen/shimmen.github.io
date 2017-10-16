@@ -29,6 +29,11 @@
 					<label id="kernelRadiusLabel"></label>
 				</div>
 				<div>
+					<label>SSAO bias:</label>
+					<input id="ssaoBiasSlider" type="range" min="-0.25" max="0.25" step="any">
+					<label id="ssaoBiasLabel"></label>
+				</div>
+				<div>
 					<label>SSAO power:</label>
 					<input id="ssaoPowerSlider" type="range" min="1.0" max="10.0" step="any">
 					<label id="ssaoPowerLabel"></label>
@@ -60,19 +65,13 @@
 				out vec3 v_normal;
 
 				void main() {
-					v_normal = mat3(u_world_from_local) * a_normal; // only perform uniform scaling!
+					v_normal = mat3(u_view_from_world) * mat3(u_world_from_local) * a_normal; // only perform uniform scaling!
 					gl_Position = u_projection_from_view * u_view_from_world * u_world_from_local * vec4(a_position, 1.0);
 				}
 			</script>
 			<script type="x-shader/x-fragment" id="geometry-fs">
 				#version 300 es
 				precision highp float;
-
-				layout(std140) uniform CameraUniforms {
-					mat4 u_view_from_world;
-					mat4 u_projection_from_view;
-					mat4 u_view_from_projection;
-				};
 
 				in vec3 v_normal;
 
@@ -81,10 +80,10 @@
 
 				void main() {
 					// TODO: Read from texture, etc.
-					o_frag_color = vec4(0.19, 1.0, 0.69, 1.0);
+					o_frag_color = vec4(230.0 / 256.0, 228.0 / 256.0, 216.0 / 256.0, 1.0);
 
 					vec3 N = normalize(v_normal);
-					vec3 packed_view_normal = normalize(mat3(u_view_from_world) * v_normal) * vec3(0.5) + vec3(0.5);
+					vec3 packed_view_normal = N * vec3(0.5) + vec3(0.5);
 					o_view_normal_depth = vec4(packed_view_normal, gl_FragCoord.z);
 				}
 			</script>
@@ -100,7 +99,7 @@
 					gl_Position = vec4(a_position, 0, 1);
 				}
 			</script>
-			<script type="x-shader/x-vertex" id="ssao-fs">
+			<script type="x-shader/x-fragment" id="ssao-fs">
 				#version 300 es
 				precision highp float;
 
@@ -118,6 +117,7 @@
 				uniform sampler2D u_ssao_noise_texture;
 				uniform vec2 u_ssao_noise_scale;
 				uniform float u_ssao_radius;
+				uniform float u_ssao_bias;
 				uniform float u_ssao_power;
 
 				in vec2 v_tex_coord;
@@ -135,8 +135,8 @@
 
 					// Set up tbn matrix for orienting the noise kernel (with random rotation from noise texture)
 					vec2 rvec_coords = v_tex_coord * u_ssao_noise_scale;
-					vec3 rvec = texture(u_ssao_noise_texture, rvec_coords).xyz * vec3(2.0) - vec3(1.0);
-					rvec = normalize(rvec); rvec.z = 0.0;
+					vec3 rvec = vec3(texture(u_ssao_noise_texture, rvec_coords).xy, 0.0);
+					rvec = normalize(rvec * vec3(2.0) - vec3(1.0));
 					vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
 					vec3 bitangent = cross(normal, tangent);
 					mat3 tbn = mat3(tangent, bitangent, normal);
@@ -159,12 +159,16 @@
 						float sample_depth = texture(u_normal_depth_texture, offset.xy).a;
 
 						// Perform range check & accumulate occlusion
-						float range_check = abs(origin.z - sample_depth) < u_ssao_radius ? 1.0 : 0.0;
-						occlusion += (sample_depth <= sample_pos.z ? 1.0 : 0.0) * range_check;
+						float range_check = 1.0 - step(u_ssao_radius, abs(origin.z - sample_depth));
+						occlusion += (1.0 - step(sample_pos.z, sample_depth)) * range_check;
 
+						// Branching but otherwise equivalent version of the lines above!
+						//float range_check = abs(origin.z - sample_depth) < u_ssao_radius ? 1.0 : 0.0;
+						//occlusion += (sample_depth <= sample_pos.z ? 1.0 : 0.0) * range_check;
 					}
-					occlusion = pow(occlusion / float(u_ssao_kernel_size), u_ssao_power);
-					occlusion = 1.0 - occlusion;
+					occlusion = occlusion / float(u_ssao_kernel_size);
+					occlusion = pow(occlusion + u_ssao_bias, u_ssao_power);
+					occlusion = 1.0 - occlusion; // technically the opposite, but I prefer it this way
 
 					o_frag_color = vec4(vec3(occlusion), 1.0);
 				}
@@ -201,21 +205,20 @@
 					// Blur the occlusion to accomidate the ssao noise texture
 
 					vec2 texel_size = 1.0 / vec2(textureSize(u_occlusion, 0));
-					vec2 hlim = vec2(float(-u_blur_size) * 0.5 + 0.5);
+					int loop_size = u_blur_size / 2;
 
 					float result = 0.0;
-					for (int i = 0; i < u_blur_size; ++i) {
-						for (int j = 0; j < u_blur_size; ++j) {
-							vec2 offset = (hlim + vec2(float(i), float(j))) * texel_size;
+					for (int i = -loop_size; i < loop_size; ++i) {
+						for (int j = -loop_size; j < loop_size; ++j) {
+							vec2 offset = vec2(float(i) + 0.5, float(j) + 0.5) * texel_size;
 							result += texture(u_occlusion, v_tex_coord + offset).r;
 						}
 					}
-
 					float occlusion = result / float(u_blur_size * u_blur_size);
 
-					// TODO: pow:ing the occlusion seems to make the blur-noise less visible,
-					// but it also affects the appearance of the SSAO.
-					return occlusion;// * occlusion * occlusion;
+					// pow:ing the occlusion like this seems to make the blur-noise less visible,
+					// but it also obviously affects the appearance of the SSAO.
+					return occlusion * occlusion;
 				}
 
 				void main() {

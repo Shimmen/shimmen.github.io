@@ -37,6 +37,7 @@ var ssao = {
 	kernelSize: 16,
 	kernel: null,
 
+	bias: 0.0,
 	power: 3.5
 };
 
@@ -134,7 +135,7 @@ function onResize(width, height) {
 
 function generateSsaoNoiseTexture() {
 	var size = ssao.noiseTextureSize;
-	var noiseData = new Uint8Array(size * size * 3);
+	var noiseData = new Uint8Array(size * size * 2);
 
 	for (var i = 0; i < size * size; i++) {
 
@@ -142,14 +143,13 @@ function generateSsaoNoiseTexture() {
 		var y = Math.random() * 2.0 - 1.0;
 		var len = Math.sqrt(x*x + y*y);
 
-		noiseData[3 * i + 0] = (x / len * 0.5 + 0.5) * 256.0;
-		noiseData[3 * i + 1] = (y / len * 0.5 + 0.5) * 256.0;
-		noiseData[3 * i + 2] = 0.0;
+		noiseData[2 * i + 0] = (x / len * 0.5 + 0.5) * 256.0;
+		noiseData[2 * i + 1] = (y / len * 0.5 + 0.5) * 256.0;
 	}
 
 	ssao.noiseTexture = app.createTexture2D(noiseData, size, size, {
-		format: PicoGL.RGB, internalFormat: PicoGL.RGB8,
-		minFilter: PicoGL.NEAREST, magFilter: PicoGL.NEAREST
+		format: PicoGL.RG, internalFormat: PicoGL.RG8,
+		minFilter: PicoGL.LINEAR, magFilter: PicoGL.LINEAR
 	});
 
 	ssao.drawCall.texture('u_ssao_noise_texture', ssao.noiseTexture);
@@ -206,6 +206,7 @@ function sliderListener(sliderId, ssaoProperty, uniformName, labelId, unit) {
 function setupListeners() {
 
 	sliderListener('kernelRadiusSlider', 'radius', 'u_ssao_radius', 'kernelRadiusLabel', 'm');
+	sliderListener('ssaoBiasSlider', 'bias', 'u_ssao_bias', 'ssaoBiasLabel', '');
 	sliderListener('ssaoPowerSlider', 'power', 'u_ssao_power', 'ssaoPowerLabel', '');
 
 	var directLightingCheckbox = document.getElementById('directLightingCheckbox');
