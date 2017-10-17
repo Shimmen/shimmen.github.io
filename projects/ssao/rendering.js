@@ -33,7 +33,7 @@ var ssao = {
 	noiseTextureSize: 4,
 	noiseTexture: null,
 
-	radius: 2.5,
+	radius: 0.40,
 	kernelSize: 16,
 	kernel: null,
 
