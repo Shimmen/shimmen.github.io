@@ -210,7 +210,7 @@
 					float result = 0.0;
 					for (int i = -loop_size; i < loop_size; ++i) {
 						for (int j = -loop_size; j < loop_size; ++j) {
-							vec2 offset = vec2(float(i) + 0.5, float(j) + 0.5) * texel_size;
+							vec2 offset = vec2(float(i), float(j)) * texel_size;
 							result += texture(u_occlusion, v_tex_coord + offset).r;
 						}
 					}
