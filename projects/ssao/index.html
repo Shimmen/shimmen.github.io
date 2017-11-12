@@ -17,7 +17,7 @@
 
 			<h1>
 				<span style="text-transform: none;">SSAO</span> demo
-				<small>2017-10-XX – Simon Moos</small>
+				<small>2017-11-13 – Simon Moos</small>
 			</h1>
 
 			<canvas id="canvas"></canvas>
@@ -27,6 +27,11 @@
 					<label>SSAO kernel radius:</label>
 					<input id="kernelRadiusSlider" type="range" min="0.02" max="1.50" step="any">
 					<label id="kernelRadiusLabel"></label>
+				</div>
+				<div>
+					<label>SSAO kernel count:</label>
+					<input id="kernelCountSlider" type="range" min="1" max="64" step="1">
+					<label id="kernelCountLabel"></label>
 				</div>
 				<div>
 					<label>SSAO bias:</label>
@@ -111,7 +116,7 @@
 
 				uniform sampler2D u_normal_depth_texture;
 
-				const int SSAO_KERNEL_MAX_SIZE = 32;
+				const int SSAO_KERNEL_MAX_SIZE = 64;
 				uniform int u_ssao_kernel_size;
 				uniform vec3 u_ssao_kernel[SSAO_KERNEL_MAX_SIZE];
 				uniform sampler2D u_ssao_noise_texture;
@@ -138,7 +143,7 @@
 					vec3 rvec = vec3(texture(u_ssao_noise_texture, rvec_coords).xy, 0.0);
 					rvec = normalize(rvec * vec3(2.0) - vec3(1.0));
 					vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
-					vec3 bitangent = cross(normal, tangent);
+					vec3 bitangent = cross(tangent, normal);
 					mat3 tbn = mat3(tangent, bitangent, normal);
 
 					// Perform SSAO kernel convolution

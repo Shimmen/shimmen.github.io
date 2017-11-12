@@ -34,7 +34,7 @@ var ssao = {
 	noiseTexture: null,
 
 	radius: 0.40,
-	kernelSize: 16,
+	kernelSize: 32,
 	kernel: null,
 
 	bias: 0.0,
@@ -112,7 +112,7 @@ function onSetup(canvas) {
 	.depthTarget();
 
 	ssao.framebuffer = app.createFramebuffer(app.width, app.height)
-	.colorTarget(0);
+	.colorTarget(0, { minFilter: PicoGL.LINEAR, magFilter: PicoGL.LINEAR, generateMipmaps: true });
 
 	generateSsaoNoiseTexture();
 	generateSsaoKernel();
@@ -181,7 +181,7 @@ function generateSsaoKernel() {
 
 ////////////////////////////////////////////////////
 
-function sliderListener(sliderId, ssaoProperty, uniformName, labelId, unit) {
+function sliderListener(sliderId, ssaoProperty, uniformName, labelId, unit, additionalHandler) {
 
 	function setLabelText(label, value) {
 		var rounded = value.toFixed(2);
@@ -199,6 +199,7 @@ function sliderListener(sliderId, ssaoProperty, uniformName, labelId, unit) {
 		setLabelText(sliderLabel, ssao[ssaoProperty]);
 		if (ssao.drawCall) {
 			ssao.drawCall.uniform(uniformName, ssao[ssaoProperty]);
+			if (additionalHandler) additionalHandler();
 		}
 	});
 }
@@ -208,6 +209,10 @@ function setupListeners() {
 	sliderListener('kernelRadiusSlider', 'radius', 'u_ssao_radius', 'kernelRadiusLabel', 'm');
 	sliderListener('ssaoBiasSlider', 'bias', 'u_ssao_bias', 'ssaoBiasLabel', '');
 	sliderListener('ssaoPowerSlider', 'power', 'u_ssao_power', 'ssaoPowerLabel', '');
+
+	sliderListener('kernelCountSlider', 'kernelSize', 'u_ssao_kernel_size', 'kernelCountLabel', '', function() {
+		generateSsaoKernel();
+	});
 
 	var directLightingCheckbox = document.getElementById('directLightingCheckbox');
 	directLightingCheckbox.addEventListener('change', function(e) {
