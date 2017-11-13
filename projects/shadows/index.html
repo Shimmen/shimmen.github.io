@@ -60,20 +60,20 @@
 					float u_light_cutoff;
 				};
 
+				uniform vec3 u_color;
+
 				in vec3 v_normal;
 
 				layout(location = 0) out vec4 o_frag_color;
-
-				const vec3 BUDDHA_COLOR = vec3(230.0 / 256.0, 228.0 / 256.0, 216.0 / 256.0);
 
 				void main() {
 
 					vec3 N = normalize(v_normal);
 					vec3 L = normalize(-u_light_direction.xyz);
-					
-					float LdotN = max(0.0, dot(L, N));
 
-					o_frag_color = vec4(LdotN * BUDDHA_COLOR, 1);
+					float LdotN = max(0.15, dot(L, N));
+
+					o_frag_color = vec4(LdotN * u_color, 1);
 				}
 			</script>
 

@@ -7,8 +7,8 @@
 var app;
 
 var camera = {
-	pos: vec3.fromValues(0.0, 6.0, -8.0),
-	targetPoint: vec3.fromValues(0.0, 5.0, 0.0),
+	pos: vec3.fromValues(9.0, 4.0, 9.0),
+	targetPoint: vec3.fromValues(2.0, 4.0, 0.0),
 	viewFromWorld: mat4.create(),
 	projectionFromView: mat4.create(),
 	viewFromProjection: mat4.create()
@@ -20,19 +20,28 @@ var cameraUniformBuffer;
 var lightUniformBuffer
 
 var light = {
-	pos: vec4.fromValues(30.0, 10.0, -10.0, 0 /* unused */),
-	targetPoint: vec4.fromValues(0.0, 5.0, 0.0, 0 /* unused */),
+	pos: vec4.fromValues(0.0, 5.0, 10.0, 0 /* unused */),
+	targetPoint: vec4.fromValues(0.0, 2.0, 0.0, 0 /* unused */),
 	lightFromWorld: mat4.create(),
 	projectionFromLight: mat4.create(),
 	lightFromProjection: mat4.create(),
 	cutoff: 30.0 /* degrees */ / (Math.PI / 180.0)
 }
 
-var buddha = {
-	drawCall: null,
-	worldFromLocal: mat4.create(),
-	currentRotation: Math.PI
-};
+var zeroRotation = quat.create();
+var quarterTurnX = quat.rotateX(quat.create(), quat.create(), Math.PI / 2.0);
+
+var buddhaDrawCall;
+var buddhaTransforms = [
+	mat4.fromRotationTranslationScale(mat4.create(), zeroRotation, vec3.fromValues(-2, 0, -1), vec3.fromValues(0.7, 0.7, 0.7)),
+	mat4.fromRotationTranslationScale(mat4.create(), zeroRotation, vec3.fromValues(+1, 0, +4), vec3.fromValues(0.2, 0.2, 0.2))
+]
+
+var panelDrawCall;
+var panelTransforms = [
+	mat4.create(), /* floor */
+	mat4.fromRotationTranslation(mat4.create(), quarterTurnX, vec3.fromValues(0, 2, -5)) /* back wall */
+];
 
 ////////////////////////////////////////////////////
 // ------------------  Setup  --------------------//
@@ -77,10 +86,34 @@ function onSetup(canvas) {
 		.vertexAttributeBuffer(1, normals)
 		.indexBuffer(indices);
 
-		buddha.drawCall = app.createDrawCall(mainShader, buddhaVertexArray);
-		buddha.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
-		buddha.drawCall.uniformBlock('LightUniforms', lightUniformBuffer);
+		buddhaDrawCall = app.createDrawCall(mainShader, buddhaVertexArray);
+		buddhaDrawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+		buddhaDrawCall.uniformBlock('LightUniforms', lightUniformBuffer);
 	});
+
+	{
+		var panelPositions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([
+			-10, 0, -10,
+			-10, 0, +10,
+			+10, 0, +10,
+			+10, 0, -10
+		]));
+		var panelNormals = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([
+			0, 1, 0,
+			0, 1, 0,
+			0, 1, 0,
+			0, 1, 0
+		]));
+		var panelIndices = app.createIndexBuffer(PicoGL.UNSIGNED_SHORT, 3, new Uint16Array([0, 1, 2, 0, 2, 3]));
+		var panelVertexArray = app.createVertexArray()
+		.vertexAttributeBuffer(0, panelPositions)
+		.vertexAttributeBuffer(1, panelNormals)
+		.indexBuffer(panelIndices);
+
+		panelDrawCall = app.createDrawCall(mainShader, panelVertexArray);
+		panelDrawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+		panelDrawCall.uniformBlock('LightUniforms', lightUniformBuffer);
+	}
 
 	// (fst = full-screen triangle)
 	/*
@@ -102,7 +135,7 @@ function onResize(width, height) {
 
 function updateCamera() {
 	var aspectRatio = app.width / app.height;
-	var fovy = Math.PI / 2.0;
+	var fovy = Math.PI / 3.0;
 
 	mat4.lookAt(camera.viewFromWorld, camera.pos, camera.targetPoint, vec3.fromValues(0, 1, 0));
 	mat4.perspective(camera.projectionFromView, fovy, aspectRatio, 0.1, 1000.0);
@@ -154,13 +187,10 @@ function makeShader(vsName, fsName, transformFeedbackVaryings = []) {
 function onRender() {
 
 	// Wait until the scene is loaded in properly
-	if (!buddha.drawCall) {
+	if (!buddhaDrawCall) {
 		app.defaultDrawFramebuffer().clear();
 		return;
 	}
-
-	buddha.currentRotation += 0.007;
-	mat4.fromRotation(buddha.worldFromLocal, buddha.currentRotation, vec3.fromValues(0, 1, 0));
 
 	// Render scene from light
 
@@ -169,7 +199,23 @@ function onRender() {
 
 	// Render scene onto screen
 	app.defaultDrawFramebuffer().clear();
-	buddha.drawCall
-	.uniform('u_world_from_local', buddha.worldFromLocal)
-	.draw();
+	renderScene();
+}
+
+function renderScene() {
+
+	for (var i = 0; i < buddhaTransforms.length; i++) {
+		buddhaDrawCall
+		.uniform('u_world_from_local', buddhaTransforms[i])
+		.uniform('u_color', vec3.fromValues(0.60, 0.58, 0.55))
+		.draw();
+	}
+
+	for (var i = 0; i < panelTransforms.length; i++) {
+		panelDrawCall
+		.uniform('u_world_from_local', panelTransforms[i])
+		.uniform('u_color', vec3.fromValues(0.9, 0.9, 0.8))
+		.draw();
+	}
+
 }
