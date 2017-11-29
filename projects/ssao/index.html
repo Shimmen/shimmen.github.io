@@ -17,7 +17,7 @@
 
 			<h1>
 				<span style="text-transform: none;">SSAO</span> demo
-				<small>2017-11-13 – Simon Moos</small>
+				<small>2017-11-29 – Simon Moos</small>
 			</h1>
 
 			<canvas id="canvas"></canvas>
@@ -25,7 +25,7 @@
 			<div class="remove-if-no-gl">
 				<div>
 					<label>SSAO kernel radius:</label>
-					<input id="kernelRadiusSlider" type="range" min="0.02" max="1.50" step="any">
+					<input id="kernelRadiusSlider" type="range" min="0.02" max="0.8" step="any">
 					<label id="kernelRadiusLabel"></label>
 				</div>
 				<div>
@@ -70,7 +70,7 @@
 				out vec3 v_normal;
 
 				void main() {
-					v_normal = mat3(u_view_from_world) * mat3(u_world_from_local) * a_normal; // only perform uniform scaling!
+					v_normal = (u_view_from_world * u_world_from_local * vec4(a_normal, 0.0)).xyz; // only perform uniform scaling!
 					gl_Position = u_projection_from_view * u_view_from_world * u_world_from_local * vec4(a_position, 1.0);
 				}
 			</script>
@@ -81,7 +81,7 @@
 				in vec3 v_normal;
 
 				layout(location = 0) out vec4 o_frag_color;
-				layout(location = 1) out vec4 o_view_normal_depth;
+				layout(location = 1) out vec4 o_view_normal;
 
 				void main() {
 					// TODO: Read from texture, etc.
@@ -89,7 +89,7 @@
 
 					vec3 N = normalize(v_normal);
 					vec3 packed_view_normal = N * vec3(0.5) + vec3(0.5);
-					o_view_normal_depth = vec4(packed_view_normal, gl_FragCoord.z);
+					o_view_normal = vec4(packed_view_normal, 0.0);
 				}
 			</script>
 
@@ -114,7 +114,8 @@
 					mat4 u_view_from_projection;
 				};
 
-				uniform sampler2D u_normal_depth_texture;
+				uniform sampler2D u_normal_texture;
+				uniform sampler2D u_depth_texture;
 
 				const int SSAO_KERNEL_MAX_SIZE = 64;
 				uniform int u_ssao_kernel_size;
@@ -128,20 +129,31 @@
 				in vec2 v_tex_coord;
 				layout(location = 0) out vec4 o_frag_color;
 
+				vec3 project(vec3 vs_pos) {
+					vec4 proj_pos = u_projection_from_view * vec4(vs_pos, 1.0);
+					proj_pos.xyz /= proj_pos.w;
+					proj_pos.z = proj_pos.z * 0.5 + 0.5;
+					return proj_pos.xyz;
+				}
+
+				vec3 unproject(vec3 proj_pos) {
+					vec4 vs_pos = u_view_from_projection * vec4(proj_pos, 1.0);
+					vs_pos.xyz /= vs_pos.w;
+					return vs_pos.xyz;
+				}
+
 				void main() {
-					vec4 norm_depth = texture(u_normal_depth_texture, v_tex_coord);
-					float depth = norm_depth.a;
-					vec3 normal = normalize(norm_depth.xyz * vec3(2.0) - vec3(1.0));
+					vec4 norm_depth = texture(u_normal_texture, v_tex_coord);
+					vec3 normal = norm_depth.xyz * vec3(2.0) - vec3(1.0);
+					float depth = texture(u_depth_texture, v_tex_coord).r;
 
 					// Get view space position of fragment
-					vec4 projected_pos = vec4(v_tex_coord * vec2(2.0) - vec2(1.0), depth, 1.0);
-					vec4 origin = u_view_from_projection * projected_pos;
-					origin.xyz /= origin.z;
+					vec3 origin = unproject(vec3(v_tex_coord * vec2(2.0) - vec2(1.0), depth * 2.0 - 1.0));
+					origin += normal * vec3(0.025); // some amount of normal offset that works
 
 					// Set up tbn matrix for orienting the noise kernel (with random rotation from noise texture)
 					vec2 rvec_coords = v_tex_coord * u_ssao_noise_scale;
-					vec3 rvec = vec3(texture(u_ssao_noise_texture, rvec_coords).xy, 0.0);
-					rvec = normalize(rvec * vec3(2.0) - vec3(1.0));
+					vec3 rvec = vec3(texture(u_ssao_noise_texture, rvec_coords).xy * vec2(2.0) - vec2(1.0), 0.0);
 					vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
 					vec3 bitangent = cross(tangent, normal);
 					mat3 tbn = mat3(tangent, bitangent, normal);
@@ -152,28 +164,23 @@
 
 						// Calculate sample view space position
 						vec3 sample_pos = tbn * u_ssao_kernel[i];
-						sample_pos = sample_pos * u_ssao_radius + origin.xyz;
+						sample_pos = origin + (sample_pos * u_ssao_radius);
+						float vs_sample_depth = sample_pos.z;
 
-						// Project sample position
-						vec4 offset = vec4(sample_pos, 1.0);
-						offset = u_projection_from_view * offset;
-						offset.xy /= offset.w;
-						offset.xy = offset.xy * vec2(0.5) + vec2(0.5);
+						// Get actual/reference depth at sample
+						vec3 proj_sample_pos = project(sample_pos);
+						vec2 sample_uv = proj_sample_pos.xy * vec2(0.5) + vec2(0.5);
+						float proj_reference_depth = texture(u_depth_texture, sample_uv).r;
+						vec3 ref_vs_position = unproject(vec3(proj_sample_pos.xy, proj_reference_depth * 2.0 - 1.0));
+						float vs_reference_depth = ref_vs_position.z;
 
-						// Get sample depth
-						float sample_depth = texture(u_normal_depth_texture, offset.xy).a;
-
-						// Perform range check & accumulate occlusion
-						float range_check = 1.0 - step(u_ssao_radius, abs(origin.z - sample_depth));
-						occlusion += (1.0 - step(sample_pos.z, sample_depth)) * range_check;
-
-						// Branching but otherwise equivalent version of the lines above!
-						//float range_check = abs(origin.z - sample_depth) < u_ssao_radius ? 1.0 : 0.0;
-						//occlusion += (sample_depth <= sample_pos.z ? 1.0 : 0.0) * range_check;
+						// TODO: Make non-branching variants of these!
+						float range_check = abs(origin.z - vs_reference_depth) < u_ssao_radius ? 1.0 : 0.0;
+						occlusion += (vs_sample_depth < vs_reference_depth ? 1.0 : 0.0) * range_check;
 					}
+
 					occlusion = occlusion / float(u_ssao_kernel_size);
-					occlusion = pow(occlusion + u_ssao_bias, u_ssao_power);
-					occlusion = 1.0 - occlusion; // technically the opposite, but I prefer it this way
+					occlusion = 1.0 - pow(1.0 - occlusion + u_ssao_bias, u_ssao_power);
 
 					o_frag_color = vec4(vec3(occlusion), 1.0);
 				}
@@ -201,8 +208,6 @@
 				uniform bool u_enable_direct_lighting;
 				uniform bool u_enable_ssao;
 
-				const vec3 light_view_position = vec3(-8, 0, -5);
-
 				in vec2 v_tex_coord;
 				layout(location = 0) out vec4 o_frag_color;
 
@@ -226,12 +231,14 @@
 					return occlusion * occlusion;
 				}
 
+				const vec3 view_light_direction = vec3(-1, 0, -1);
+
 				void main() {
 
 					vec3 packed_view_normal = texture(u_normal, v_tex_coord).rgb;
 					vec3 N = normalize(packed_view_normal * vec3(2.0) - vec3(1.0));
 
-					const vec3 L = normalize(-light_view_position);
+					const vec3 L = normalize(-view_light_direction);
 					float LdotN = max(dot(L, N), 0.0);
 
 					vec3 color = texture(u_albedo, v_tex_coord).rgb;

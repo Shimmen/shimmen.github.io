@@ -77,6 +77,36 @@
 				}
 			</script>
 
+			<script type="x-shader/x-vertex" id="shadow-gen-vs">
+				#version 300 es
+
+				layout(location = 0) in vec3 a_position;
+
+				layout(std140) uniform LightUniforms {
+					vec4 u_light_position;
+					vec4 u_light_direction;
+					mat4 u_light_from_world;
+					mat4 u_projection_from_light;
+					mat4 u_light_from_projection;
+					float u_light_cutoff;
+				};
+				uniform mat4 u_world_from_local;
+
+				void main() {
+					gl_Position = u_projection_from_light * u_light_from_world * u_world_from_local * vec4(a_position, 1.0);
+				}
+			</script>
+			<script type="x-shader/x-fragment" id="shadow-gen-fs">
+				#version 300 es
+				precision highp float;
+
+				layout(location = 0) out vec4 o_frag_color;
+
+				void main() {
+					o_frag_color = vec4(gl_FragCoord.zzz, 1);
+				}
+			</script>
+
 			<h2>About</h2>
 			<p>TODO!</p>
 			<p><a href="https://twitter.com/share" class="twitter-share-button" data-text="..." data-via="SimonMoos" data-lang="en" data-show-count="false">Tweet</a></p>

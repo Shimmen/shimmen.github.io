@@ -6,16 +6,9 @@
 
 var app;
 
-var mouse = {
-	lastX: undefined,
-	lastY: undefined,
-	dx: 0.0,
-	dy: 0.0
-};
-
 var camera = {
-	pos: vec3.fromValues(0.0, 6.0, -8.0),
-	targetPoint: vec3.fromValues(0.0, 5.0, 0.0),
+	pos: vec3.fromValues(0.0, 4.5, -8.0),
+	targetPoint: vec3.fromValues(0.0, 2.5, 0.0),
 	viewFromWorld: mat4.create(),
 	projectionFromView: mat4.create(),
 	viewFromProjection: mat4.create()
@@ -33,18 +26,27 @@ var ssao = {
 	noiseTextureSize: 4,
 	noiseTexture: null,
 
-	radius: 0.40,
-	kernelSize: 32,
+	radius: 0.55,
+	kernelSize: 64,
 	kernel: null,
 
 	bias: 0.0,
-	power: 3.5
+	power: 3.2
 };
 
 var buddha = {
 	drawCall: null,
 	worldFromLocal: mat4.create(),
 	currentRotation: Math.PI
+};
+
+var cube = {
+	drawCall: null,
+	worldFromLocal: mat4.create()
+};
+
+var room = {
+	drawCall: null
 };
 
 var post = {
@@ -78,21 +80,70 @@ function onSetup(canvas) {
 	updateCamera();
 
 	OBJ.downloadMeshes({
-		'buddha': 'buddha.obj'
+		'buddha': 'buddha.obj',
+		'cube': 'cube.obj'
 	}, function(meshes) {
 
-		var positions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.buddha.vertices));
-		var normals   = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(meshes.buddha.vertexNormals));
-		let indices   = app.createIndexBuffer(PicoGL.UNSIGNED_SHORT, 3, new Uint16Array(meshes.buddha.indices));
-
-		var buddhaVertexArray = app.createVertexArray()
-		.vertexAttributeBuffer(0, positions)
-		.vertexAttributeBuffer(1, normals)
-		.indexBuffer(indices);
-
+		var buddhaVertexArray = makeVertexArray(meshes.buddha);
 		buddha.drawCall = app.createDrawCall(geometryShader, buddhaVertexArray);
 		buddha.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+
+		var cubeVertexArray = makeVertexArray(meshes.cube);
+		cube.drawCall = app.createDrawCall(geometryShader, cubeVertexArray);
+		cube.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+
+		var cubeOrientation = quat.setAxisAngle(quat.create(), vec3.fromValues(0, 1, 0), Math.PI / 4.0);
+		mat4.fromRotationTranslationScale(cube.worldFromLocal, cubeOrientation, vec3.fromValues(-3, 0.5, 0), vec3.fromValues(1, 1, 1));
+		cube.drawCall.uniform('u_world_from_local', cube.worldFromLocal);
+
 	});
+
+	{
+		var w = 30;
+		var h = 22;
+
+		var roomPositions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([
+			-w, 0, -5,
+			-w, 0, +6,
+			+w, 0, +6,
+
+			-w, 0, -5,
+			+w, 0, +6,
+			+w, 0, -5,
+
+			-w, 0, +6,
+			-w, h, +6,
+			+w, h, +6,
+
+			-w, 0, +6,
+			+w, h, +6,
+			+w, 0, +6
+		]));
+		var roomNormals = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array([
+			0, 1, 0,
+			0, 1, 0,
+			0, 1, 0,
+
+			0, 1, 0,
+			0, 1, 0,
+			0, 1, 0,
+
+			0, 0, -1,
+			0, 0, -1,
+			0, 0, -1,
+
+			0, 0, -1,
+			0, 0, -1,
+			0, 0, -1
+		]));
+		var roomVertexArray = app.createVertexArray()
+		.vertexAttributeBuffer(0, roomPositions)
+		.vertexAttributeBuffer(1, roomNormals);
+
+		room.drawCall = app.createDrawCall(geometryShader, roomVertexArray);
+		room.drawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
+		room.drawCall.uniform('u_world_from_local', mat4.create());
+	}
 
 	// (fst = full-screen triangle)
 	var fstPositions = app.createVertexBuffer(PicoGL.FLOAT, 2, new Float32Array([-1, -1, +3, -1, -1, +3]));
@@ -132,6 +183,19 @@ function onResize(width, height) {
 }
 
 ////////////////////////////////////////////////////
+
+function makeVertexArray(objObject) {
+	var positions = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(objObject.vertices));
+	var normals   = app.createVertexBuffer(PicoGL.FLOAT, 3, new Float32Array(objObject.vertexNormals));
+	let indices   = app.createIndexBuffer(PicoGL.UNSIGNED_SHORT, 3, new Uint16Array(objObject.indices));
+
+	var vertexArray = app.createVertexArray()
+	.vertexAttributeBuffer(0, positions)
+	.vertexAttributeBuffer(1, normals)
+	.indexBuffer(indices);
+
+	return vertexArray;
+}
 
 function generateSsaoNoiseTexture() {
 	var size = ssao.noiseTextureSize;
@@ -234,10 +298,10 @@ function setupListeners() {
 
 function updateCamera() {
 	var aspectRatio = app.width / app.height;
-	var fovy = Math.PI / 2.0;
+	var fovy = Math.PI / 4;
 
 	mat4.lookAt(camera.viewFromWorld, camera.pos, camera.targetPoint, vec3.fromValues(0, 1, 0));
-	mat4.perspective(camera.projectionFromView, fovy, aspectRatio, 0.1, 1000.0);
+	mat4.perspective(camera.projectionFromView, fovy, aspectRatio, 1.0, 100.0);
 	mat4.invert(camera.viewFromProjection, camera.projectionFromView);
 
 	cameraUniformBuffer
@@ -277,21 +341,26 @@ function onRender() {
 	}
 
 	buddha.currentRotation += 0.007;
-	mat4.fromRotation(buddha.worldFromLocal, buddha.currentRotation, vec3.fromValues(0, 1, 0));
+	var buddhaRotation = quat.setAxisAngle(quat.create(), vec3.fromValues(0, 1, 0), buddha.currentRotation);
+	//mat4.fromRotation(buddha.worldFromLocal, buddha.currentRotation, vec3.fromValues(0, 1, 0));
+	mat4.fromRotationTranslationScale(buddha.worldFromLocal, buddhaRotation, vec3.create(), vec3.fromValues(0.5, 0.5, 0.5));
 
 	// Render scene into g-buffer
 	app.drawFramebuffer(gBuffer).clear();
-	buddha.drawCall
-	.uniform('u_world_from_local', buddha.worldFromLocal)
-	.draw();
+
+	room.drawCall.draw();
+	cube.drawCall.draw();
+	buddha.drawCall.uniform('u_world_from_local', buddha.worldFromLocal).draw();
 
 	var albedoTexture = gBuffer.colorTextures[0];
-	var normalDepthTexture = gBuffer.colorTextures[1];
+	var normalTexture = gBuffer.colorTextures[1];
+	var depthTexture = gBuffer.depthTexture;
 
 	// Perform SSAO pass
 	app.drawFramebuffer(ssao.framebuffer);
 	ssao.drawCall
-	.texture('u_normal_depth_texture', normalDepthTexture)
+	.texture('u_normal_texture', normalTexture)
+	.texture('u_depth_texture', depthTexture)
 	.draw();
 
 	var occlusionTexture = ssao.framebuffer.colorTextures[0];
@@ -300,7 +369,7 @@ function onRender() {
 	app.defaultDrawFramebuffer();
 	post.drawCall
 	.texture('u_albedo', albedoTexture)
-	.texture('u_normal', normalDepthTexture)
+	.texture('u_normal', normalTexture)
 	.texture('u_occlusion', occlusionTexture)
 	.uniform('u_blur_size', ssao.noiseTextureSize)
 	.draw();

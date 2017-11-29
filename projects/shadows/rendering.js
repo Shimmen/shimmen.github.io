@@ -25,19 +25,21 @@ var light = {
 	lightFromWorld: mat4.create(),
 	projectionFromLight: mat4.create(),
 	lightFromProjection: mat4.create(),
-	cutoff: 30.0 /* degrees */ / (Math.PI / 180.0)
+	cutoff: Math.PI / 2.0
 }
 
 var zeroRotation = quat.create();
 var quarterTurnX = quat.rotateX(quat.create(), quat.create(), Math.PI / 2.0);
 
 var buddhaDrawCall;
+var buddhaShadowDrawCall;
 var buddhaTransforms = [
 	mat4.fromRotationTranslationScale(mat4.create(), zeroRotation, vec3.fromValues(-2, 0, -1), vec3.fromValues(0.7, 0.7, 0.7)),
 	mat4.fromRotationTranslationScale(mat4.create(), zeroRotation, vec3.fromValues(+1, 0, +4), vec3.fromValues(0.2, 0.2, 0.2))
 ]
 
 var panelDrawCall;
+var panelShadowDrawCall;
 var panelTransforms = [
 	mat4.create(), /* floor */
 	mat4.fromRotationTranslation(mat4.create(), quarterTurnX, vec3.fromValues(0, 2, -5)) /* back wall */
@@ -55,6 +57,7 @@ function onSetup(canvas) {
 	.cullBackfaces();
 
 	var mainShader = makeShader('main-vs', 'main-fs');
+	var shadowGenShader = makeShader('shadow-gen-vs', 'shadow-gen-fs');
 
 	cameraUniformBuffer = app.createUniformBuffer([
 		PicoGL.FLOAT_MAT4, /* u_view_from_world */
@@ -89,6 +92,9 @@ function onSetup(canvas) {
 		buddhaDrawCall = app.createDrawCall(mainShader, buddhaVertexArray);
 		buddhaDrawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
 		buddhaDrawCall.uniformBlock('LightUniforms', lightUniformBuffer);
+
+		buddhaShadowDrawCall = app.createDrawCall(shadowGenShader, buddhaVertexArray);
+		buddhaShadowDrawCall.uniformBlock('LightUniforms', lightUniformBuffer);
 	});
 
 	{
@@ -113,6 +119,9 @@ function onSetup(canvas) {
 		panelDrawCall = app.createDrawCall(mainShader, panelVertexArray);
 		panelDrawCall.uniformBlock('CameraUniforms', cameraUniformBuffer);
 		panelDrawCall.uniformBlock('LightUniforms', lightUniformBuffer);
+
+		panelShadowDrawCall = app.createDrawCall(shadowGenShader, panelVertexArray);
+		panelShadowDrawCall.uniformBlock('LightUniforms', lightUniformBuffer);
 	}
 
 	// (fst = full-screen triangle)
@@ -154,15 +163,15 @@ function updateLight() {
 	vec4.normalize(lightDirection, lightDirection);
 
 	mat4.lookAt(light.lightFromWorld, light.pos, light.targetPoint, vec3.fromValues(0, 1, 0));
-	mat4.perspective(light.projectionFromLight, light.cutoff, 1.0, 0.1, 1000.0);
+	mat4.perspective(light.projectionFromLight, light.cutoff, 1.0, 2.0, 1000.0);
 	mat4.invert(light.lightFromProjection, light.projectionFromLight);
 
 	lightUniformBuffer
 	.set(0, light.pos)
 	.set(1, lightDirection)
 	.set(2, light.lightFromWorld)
-	.set(3, light.lightFromProjection)
-	.set(4, light.projectionFromLight)
+	.set(3, light.projectionFromLight)
+	.set(4, light.lightFromProjection)
 	.set(5, light.cutoff)
 	.update();
 }
@@ -205,16 +214,16 @@ function onRender() {
 function renderScene() {
 
 	for (var i = 0; i < buddhaTransforms.length; i++) {
-		buddhaDrawCall
+		buddhaShadowDrawCall
 		.uniform('u_world_from_local', buddhaTransforms[i])
-		.uniform('u_color', vec3.fromValues(0.60, 0.58, 0.55))
+		//.uniform('u_color', vec3.fromValues(0.60, 0.58, 0.55))
 		.draw();
 	}
 
 	for (var i = 0; i < panelTransforms.length; i++) {
-		panelDrawCall
+		panelShadowDrawCall
 		.uniform('u_world_from_local', panelTransforms[i])
-		.uniform('u_color', vec3.fromValues(0.9, 0.9, 0.8))
+		//.uniform('u_color', vec3.fromValues(0.9, 0.9, 0.8))
 		.draw();
 	}
 
