@@ -9,7 +9,7 @@
 
 	// Try to grab the standard context. If it fails, fallback to experimental.
 	var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-	if (!gl) alert('Unable to initialize WebGL. Your browser may not support it.');
+	if (!gl) return; // not much more to do here then...
 
 	// Load geometry
 	var quadVertices = [

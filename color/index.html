@@ -29,7 +29,7 @@
 		</style>
 	</head>
 	<body>
-		<p id="message">press 'f' to go fullscreen, press 'r' to switch to some random color, or use keys 0 through 9 to select some gray color</p>
+		<p id="message">press 'f' to go fullscreen, press 'r' to switch to some random color, or use keys 1 through 9 to select some gray color</p>
 		<script type="text/javascript">
 
 			function goFullscreen(element) {
@@ -47,14 +47,6 @@
 
 			function setBackgroundColor(element, color) {
 				element.style.backgroundColor = color;
-			}
-
-			function grayColorFromKey(key) {
-				var lightness = 0.0;
-				if (key >= 0 && key < 10) {
-					lightness = key / 9.0 * 100.0;
-				}
-				return 'hsl(0, 0%, ' + lightness + '%)';
 			}
 
 			function makeRandomPastelColor() {
@@ -81,24 +73,23 @@
 					if (!isCurrentlyFullscreen()) {
 						goFullscreen(element);
 						clearTimeout(defaultTimeoutId);
-						setTimeout(function() {
-							fadeOutMessage();
-						}, 2000);
+						setTimeout(function() { fadeOutMessage() }, 2000);
 					}
-				} else if (code >= 48 /* 0 */ && code <= 57 /* 9 */) {
-					var color = grayColorFromKey(code - 48);
+				} else if (code >= 49 /* 1 */ && code <= 57 /* 9 */) {
+					var lightness = (code - 49) / (57 - 49) * 100.0;
+					var color = 'hsl(0, 0%, ' + lightness + '%)';
 					setBackgroundColor(element, color);
 					clearTimeout(defaultTimeoutId);
-					setTimeout(function() {
-						fadeOutMessage();
-					}, 2000);
+					setTimeout(function() { fadeOutMessage() }, 2000);
 				} else if (code === 82 /* r */) {
 					var randomColor = makeRandomPastelColor();
 					setBackgroundColor(element, randomColor);
 					clearTimeout(defaultTimeoutId);
-					setTimeout(function() {
-						fadeOutMessage();
-					}, 4000);
+					setTimeout(function() { fadeOutMessage() }, 4000);
+				} else if (code === 67 /* c, for coral */) {
+					setBackgroundColor(element, '#F08080');
+					clearTimeout(defaultTimeoutId);
+					setTimeout(function() { fadeOutMessage() }, 4000);
 				}
 			}, false);
 

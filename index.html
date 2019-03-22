@@ -10,7 +10,7 @@
 	<body>
 
 		<header>
-			<canvas id="header-canvas">
+			<canvas id="header-canvas" height="3000px"> <!-- oversized initial height so we don't get ugly pop-in -->
 				<script type="x-shader/x-vertex" id="quad.vert">
 					attribute lowp vec2 a_position;
 					varying lowp vec2 v_uv;
@@ -26,8 +26,6 @@
 
 					const float TWO_PI = 2.0 * 3.14159265359;
 					const vec3 LUMA = vec3(0.2126,0.7152,0.0722);
-
-					const float ballEdge = 1.3;
 
 					float rand(vec2 c) {
 						// From https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -98,6 +96,11 @@
 					<a href="/projects/particles"><h3>Particle simulation</h3></a>
 					<p>A simple interactive gravity based particle system simulation with 200&nbsp;000 particles.</p>
 				</li>
+				<li class="project">
+					<a href="https://erkanchalmers.github.io/ChineseCheckersAI/"><img src="assets/thumbnail_chinese_checkers.jpg" alt="chinese checkers thumbnail"></a>
+					<a href="https://erkanchalmers.github.io/ChineseCheckersAI/"><h3>Chinese checkers AI</h3></a>
+					<p>A 2-player chinese checkers game where you play against an AI. It's not very advanced, but it's still a pretty good oponent! Made by me and three other as a school project. The code is available <a href="https://github.com/ErkanChalmers/ChineseCheckersAI">here</a>!</p>
+				</li>
 			</ul>
 			<p>&nbsp;<!-- NOTE: because of the float left for the li the whole section isn't really correctly rendered, or at least not what I would imagine would be correct... So by adding this p in the end I force the browser to respect the bottom margins etc. so that it looks alright. It's technically more spacing than I want below the list (because of the extra line) but I don't mind that very much. --></p>
 		</section>
@@ -108,7 +111,7 @@
 		</section>
 
 		<footer>
-			<p>Simon Moos (c) 2018</p>
+			<p>Simon Moos (c) 2019</p>
 		</footer>
 
 		<script type="text/javascript" src="index.js"></script>
