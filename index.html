@@ -61,8 +61,8 @@
 				<ul>
 					<li><h1><a href="">Simon Moos</a></h1></li>
 					<li><p><a id="about-link" href="#about">About</a></p></li>
-					<li><p><a id="projects-link" href="#projects">Projects</a></p></li>
 					<li><p><a id="resume-link" href="#resume">Resumé</a></p></li>
+					<li><p><a id="projects-link" href="#projects">Projects</a></p></li>
 				</ul>
 			</nav>
 			<div id="scroll-down-btn"></div>
@@ -73,54 +73,65 @@
 			<p>Hi! My name is Simon Moos and currently pursuing a master's degree in computer science at <a href="http://www.chalmers.se/en/Pages/default.aspx">Chalmers University of Technology</a> in Sweden. My main interests are in the fields of computer graphics and systems programming, and some projects and demos related to that can be found below.</p>
 			<p>If you want to see and hear more from me, follow me on Twitter and GitHub:</p>
 			<p>
-				<a href="https://twitter.com/SimonMoos" class="twitter-follow-button" data-lang="en" data-show-count="false">Follow @SimonMoos</a>
+				<a href="https://twitter.com/SimonMoos" class="twitter-follow-button" data-lang="en" data-show-count="false" data-dnt="true">Follow @SimonMoos</a>
+				<script async defer src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 				<iframe src="https://ghbtns.com/github-btn.html?user=Shimmen&type=follow&count=false" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
 			</p>
+		</section>
+
+		<section>
+			<h2 id="resume">Resumé</h2>
+			<p>My resumé is available for download <a href="assets/resume-simon-moos.pdf">here</a>. Contact information is available in the document.</p>
 		</section>
 
 		<section>
 			<h2 id="projects">Projects</h2>
 			<ul>
 				<li class="project">
+					<a href="https://www.github.com/Shimmen/Prospect"><img src="assets/thumbnail_prospect.jpg" alt="prospect thumbnail"></a>
+					<a href="https://www.github.com/Shimmen/Prospect"><h3>Prospect — real-time renderer</h3></a>
+					<p>My long running real-time rendering project (using C++ & OpenGL). The code isn't the prettiest since I have focused on flexibility over nice abstractions. However, it does have a lot of features & it generates quite nice images!</p>
+				</li>
+				<li class="project">
 					<a href="https://github.com/Global-Illuminati"><img src="assets/thumbnail_rt_gi.jpg" alt="RT GI preview thumbnail"></a>
-					<a href="https://github.com/Global-Illuminati"><h3>Real-time Global Illumination in Web Browsers</h3></a>
+					<a href="https://github.com/Global-Illuminati"><h3>Real-time global illumination in web browsers</h3></a>
 					<p>Bachelor thesis on said subject. Me and five other people implemented and evaluated three modern real-time global illumination techniques in WebGL 2.0. The thesis can be found <a href="http://publications.lib.chalmers.se/records/fulltext/256137/256137.pdf">here</a>!</p>
 				</li>
 				<li class="project">
-					<a href="/projects/ssao"><img src="assets/thumbnail_ssao.jpg" alt="ssao thumbnail"></a>
-					<a href="/projects/ssao"><h3>SSAO demo</h3></a>
-					<p>Screen space ambient occlusion (SSAO) using a normal‑oriented hemisphere kernel.</p>
+					<a href="https://www.github.com/Shimmen/Traceratops"><img src="assets/thumbnail_traceratops.jpg" alt="ray tracer thumbnail"></a>
+					<a href="https://www.github.com/Shimmen/Traceratops"><h3>Traceratops — path tracer</h3></a>
+					<p>A very basic CPU path tracer. It was mostly developed for the purpose of learning how it works (back in 2018), so in terms of performance & nice-to-have features not much has been done.</p>
 				</li>
 				<li class="project">
 					<a href="https://www.shadertoy.com/view/tdlXzr"><img src="assets/thumbnail_raymarcher.jpg" alt="raymarcher thumbnail"></a>
 					<a href="https://www.shadertoy.com/view/tdlXzr"><h3>A somewhat physically based raymarcher</h3></a>
-					<p>A basic example/template of 3D raymarching with materials that are somewhat physically based. Features include: multiple bounces and IBL for last bounce, multiple materials, and soft shadows.</p>
+					<p>A basic shadertoy example/template of 3D raymarching with materials that are somewhat physically based. Features include: multiple bounces and IBL for last bounce, multiple materials, and soft shadows.</p>
+				</li>
+				<li class="project">
+					<a href="/projects/ssao"><img src="assets/thumbnail_ssao.jpg" alt="ssao thumbnail"></a>
+					<a href="/projects/ssao"><h3>SSAO demo</h3></a>
+					<p>An old screen space ambient occlusion (SSAO) demo using the normal‑oriented hemisphere kernel method.</p>
 				</li>
 				<li class="project">
 					<a href="/projects/particles"><img src="assets/thumbnail_particles.jpg" alt="particles thumbnail"></a>
-					<a href="/projects/particles"><h3>Particle simulation</h3></a>
-					<p>A simple interactive gravity based particle system simulation with 200&nbsp;000 particles.</p>
+					<a href="/projects/particles"><h3>GPU particle simulation</h3></a>
+					<p>A simple interactive gravity based particle system simulation with 200&nbsp;000 particles. Made in WebGL 2.0 using transform feedback.</p>
 				</li>
 				<li class="project">
-					<a href="https://erkanchalmers.github.io/ChineseCheckersAI/"><img src="assets/thumbnail_chinese_checkers.jpg" alt="chinese checkers thumbnail"></a>
-					<a href="https://erkanchalmers.github.io/ChineseCheckersAI/"><h3>Chinese checkers AI</h3></a>
-					<p>A 2-player chinese checkers game where you play against an AI. It's not very advanced, but it's still a pretty good oponent! Made by me and three other as a school project. The code is available <a href="https://github.com/ErkanChalmers/ChineseCheckersAI">here</a>!</p>
+					<a href="https://erik-sanne.github.io/ChineseCheckersAI/"><img src="assets/thumbnail_chinese_checkers.jpg" alt="chinese checkers thumbnail"></a>
+					<a href="https://erik-sanne.github.io/ChineseCheckersAI/"><h3>Chinese checkers AI</h3></a>
+					<p>A 2-player chinese checkers game where you play against an AI. It's not very advanced, but it's still a pretty good oponent! Made by me and three other as a school project. The code is available <a href="https://github.com/erik-sanne/ChineseCheckersAI">here</a>!</p>
 				</li>
 			</ul>
 			<p>&nbsp;<!-- NOTE: because of the float left for the li the whole section isn't really correctly rendered, or at least not what I would imagine would be correct... So by adding this p in the end I force the browser to respect the bottom margins etc. so that it looks alright. It's technically more spacing than I want below the list (because of the extra line) but I don't mind that very much. --></p>
 		</section>
 
-		<section>
-			<h2 id="resume">Resumé</h2>
-			<p>My resumé is available for download <a href="assets/resume-simon-moos.pdf">here</a>.</p>
-		</section>
-
 		<footer>
-			<p>Simon Moos (c) 2019</p>
+			<p>Simon Moos (c) 2020</p>
 		</footer>
 
 		<script type="text/javascript" src="index.js"></script>
-		<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 		<script>
 			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -129,5 +140,9 @@
 			ga('create', 'UA-98613739-1', 'auto');
 			ga('send', 'pageview');
 		</script>
+
+		<link rel="stylesheet" type="text/css" href="//wpcc.io/lib/1.0.2/cookieconsent.min.css"/>
+		<script src="//wpcc.io/lib/1.0.2/cookieconsent.min.js"></script>
+		<script>window.addEventListener("load", function(){window.wpcc.init({"corners":"small","colors":{"popup":{"background":"#eee","text":"#555555","border":"#555555"},"button":{"background":"#555555","text":"#eee"}},"position":"bottom-right","padding":"small","fontsize":"small","border":"normal","content":{"href":" ","message":"This website uses cookies so I can have share buttons &amp; some analytics available.","link":"","button":"Okay!"}})});</script>
 	</body>
 </html>
