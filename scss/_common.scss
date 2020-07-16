@@ -71,6 +71,7 @@ code {
 	font-family: $code-font;
 	display: block;
 	overflow-x: auto;
+	white-space: pre-wrap;
 
 	padding: 6px;
 	padding-left: 12px;

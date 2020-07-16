@@ -100,6 +100,7 @@ code {
   padding-left: 12px;
   border-radius: 6px;
   font-size: 1.0em;
+  white-space: pre-wrap;
   background-color: #444;
   color: #eee;
   -webkit-box-shadow: 4px 4px 20px 2px rgba(122, 122, 122, 0.6);
@@ -140,6 +141,19 @@ header h1 {
 
 button {
   display: block;
+  cursor: pointer;
+  margin: 0;
+  padding: 6px 10px;
+  font-family: "Space Mono", monospace;
+  font-size: 0.65em;
+  font-style: italic;
+  text-transform: lowercase;
+  border-radius: 0;
+  border: 0;
+  color: #eee;
+  background-color: #444; }
+
+input[type='file'] {
   cursor: pointer;
   margin: 0;
   padding: 6px 10px;
