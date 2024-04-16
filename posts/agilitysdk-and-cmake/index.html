@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Agility SDK & DXC with CMake – simon moos</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="../../favicon.ico">
+		<link rel="stylesheet" href="../../css/project.css">
+
+		<meta name="twitter:card" content="summary">
+		<meta name="twitter:site" content="@SimonMoos">
+		<meta name="twitter:creator" content="@SimonMoos">
+		<meta name="twitter:title" content="Using DirectX 12 Agility SDK & DirectXShaderCompiler in a CMake project">
+		<meta name="twitter:description" content="A short guide on getting DirectX 12 Agility SDK & DirectXShaderCompiler (DXC) working nicely in a CMake project">
+	</head>
+	<body>
+
+		<header>
+			<h1><a href="/">Simon Moos</a></h1>
+		</header>
+
+		<section>
+			<h1 style="text-align: left; line-height: 1.1em; padding-top: 15px;">
+				Using DirectX 12 Agility SDK & DirectXShaderCompiler (DXC) in a CMake project
+				<small>April 2024 – Simon Moos</small>
+			</h1>
+
+			<p>I recently wanted to add D3D12 support for <a href="https://github.com/Shimmen/ArkoseRenderer">my hobby rendering engine project &quot;Arkose&quot;</a>, which has pretty much just been running on Vulkan up until this point. Besides the fun challenge of adding another rendering backend, I was faced with the less fun challenge of getting things building & linking nicely in my CMake-based build system. I won't go into the full story here but I figured the end result might be useful for other taking this path.</p>
+			
+			<p><blockquote style="margin: 0 40px; font-style: italic;">First, before you make it more complex than it needs to be, note that DirectX 12 and DirectXShaderCompiler are now both included in the Windows SDK, so you might not need the Agility SDK. However, the Windows SDK release will not include all the latest features, so if you want that then the Agility SDK would be for you. You can read <a href="https://devblogs.microsoft.com/directx/gettingstarted-dx12agility/#whatis">this official page</a> for more info. If you are fine with using a basic D3D12 feature level and Shader Model 5.0 (and you're on a reasonably recent version of Windows 10 or 11), then all you need to do is link against the libraries, and everything should just work: <code>target_link_libraries(YOUR_TARGET d3d12 dxgi dxguid dxc)</code></blockquote></p>
+
+			<h2 id="agility-sdk">Agility SDK</h2>
+
+			<p>I like to keep my repositories clean of both 3rd-party code and libraries/binaries. Most of my dependencies are hosted as source in GitHub, where I can use CMake's FetchContent to download and build these dependencies locally, in-tree. I do this for all my dependencies, except for the Vulkan SDK which I simply ask the user to have installed on their PC. When it comes to the Agility SDK, however, there's no source available to build and there's no convenient installer. There's mostly just the NuGet package and some vague instructions. I've never used NuGet before and I'm already using FetchContent a lot, so I figured there was a way to use the former with the latter. Here's my solution:</p>
+
+			<iframe frameborder="0" scrolling="no" style="width:100%; height:793px;" allow="clipboard-write" src="https://emgithub.com/iframe.html?target=https%3A%2F%2Fgithub.com%2FShimmen%2FArkoseRenderer%2Fblob%2F3411f02927e4206eb8c053004469782efda938a6%2Fdeps%2Fd3d12%2Fdirectxagility%2FCMakeLists.txt&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></iframe>
+
+			<p>Suprisingly, FetchContent seems to understand that a NuGet package is simply a zip-file with a weird extension and unpacks it for you. I couldn't find this documented anywhere, but hey, it works! Most details here don't matter too much, but you do want to make sure to expose AGILITYSDK_VERSION_MAJOR, AGILITYSDK_D3D12CORE_DLL, and AGILITYSDK_D3D12SDKLAYERS_DLL, as they are needed for your target. Below you can see how I integrate it with my target (ArkoseRenderer):</p>
+
+			<iframe frameborder="0" scrolling="no" style="width:100%; height:268px;" allow="clipboard-write" src="https://emgithub.com/iframe.html?target=https%3A%2F%2Fgithub.com%2FShimmen%2FArkoseRenderer%2Fblob%2F3411f02927e4206eb8c053004469782efda938a6%2FCMakeLists.txt%23L226-L234&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></iframe>
+
+			<p>The reason I set ARKOSE_AGILITY_SDK_VERSION as a compile definition is to I can use the <a href="https://devblogs.microsoft.com/directx/gettingstarted-dx12agility/#parametersa">&quot;__declspec(dllexport) keyword&quot; method</a> to specify the Agility SDK version for my project. This way I only need to change the version in the CMake file to upgrade, which I like.</p>
+
+			<p>You still have to link against d3d12 (remember that Windows handles the DLL redirection for you) and the other libraries, but make sure you also include agilitysdk to get use the correct headers. Here's what I do:</p>
+
+			<iframe frameborder="0" scrolling="no" style="width:100%; height:205px;" allow="clipboard-write" src="https://emgithub.com/iframe.html?target=https%3A%2F%2Fgithub.com%2FShimmen%2FArkoseRenderer%2Fblob%2F3411f02927e4206eb8c053004469782efda938a6%2FCMakeLists.txt%23L215-L220&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></iframe>
+
+			<h2 id="dxc">DirectXShaderCompiler (DXC)</h2>
+
+			<p>If you're using the Agility SDK you likely also want to use a recent version of the DirectXShaderCompiler (DXC), which is <a href="https://github.com/microsoft/DirectXShaderCompiler">officially hosted on GitHub</a>. While it's technically possible to build it yourself with add_subproject, it's a pretty big project to build with a somewhat complex build setup and dependencies of its own, so in this case I opted for prebuild binaries. Fortunately, they are provided as <a href="https://github.com/microsoft/DirectXShaderCompiler/releases">GitHub releases</a>, which are easy to use with CMake. Simply copy the link of the release zip-file you're interested in, e.g. dxc_2024_03_22.zip, to get a permalink source. From there it's pretty easy:</p>
+
+			<iframe frameborder="0" scrolling="no" style="width:100%; height:331px;" allow="clipboard-write" src="https://emgithub.com/iframe.html?target=https%3A%2F%2Fgithub.com%2FShimmen%2FArkoseRenderer%2Fblob%2F3411f02927e4206eb8c053004469782efda938a6%2Fdeps%2Fd3d12%2Fdirectxcompiler%2FCMakeLists.txt&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></iframe>
+
+			<p>As we set up DXC as an &quot;imported library&quot; we can now just call target_link_libraries(YOUR_TARGET dxc) and don't have to worry about manually copying its DLLs around. However, you do still have to tell CMake to copy any runtime DLLs to the executable location. If you don't already have that set up for your project you can simply add something like this:</p>
+
+			<iframe frameborder="0" scrolling="no" style="width:100%; height:163px;" allow="clipboard-write" src="https://emgithub.com/iframe.html?target=https%3A%2F%2Fgithub.com%2FShimmen%2FArkoseRenderer%2Fblob%2F3411f02927e4206eb8c053004469782efda938a6%2FCMakeLists.txt%23L278-L281&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></iframe>
+
+			<h2 id="conclusion">Conclusion</h2>
+
+			<p>That should be all! None of this is very hard to figure out on your own, but there's a lot of annoying build system details to get right. I sure didn't enjoy the process of figuring it all out, so by sharing it I can hopefully make it easier for the next person.</p>
+			
+			<p>If you have any questions or things aren't working, just send me a message on Twitter/X and I'd be happy to help!</p>
+
+			<a href="https://twitter.com/SimonMoos" class="twitter-follow-button" data-lang="en" data-show-count="false" data-dnt="true">Follow @SimonMoos</a>
+				<script async defer src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+				<iframe src="https://ghbtns.com/github-btn.html?user=Shimmen&type=follow&count=false" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+
+		</section>
+
+		<footer>
+			<p>Simon Moos (c) 2024</p>
+		</footer>
+
+		<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+		<link rel="stylesheet" type="text/css" href="//wpcc.io/lib/1.0.2/cookieconsent.min.css"/>
+		<script src="//wpcc.io/lib/1.0.2/cookieconsent.min.js"></script>
+		<script>window.addEventListener("load", function(){window.wpcc.init({"corners":"small","colors":{"popup":{"background":"#eee","text":"#555555","border":"#555555"},"button":{"background":"#555555","text":"#eee"}},"position":"bottom-right","padding":"small","fontsize":"small","border":"normal","content":{"href":" ","message":"This website uses cookies so I can have share buttons &amp; some analytics available.","link":"","button":"Okay!"}})});</script>
+	</body>
+</html>
