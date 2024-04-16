@@ -195,12 +195,16 @@
 		scrollTo('#about');
 	});
 
-	document.getElementById('resume-link').addEventListener('click', function () {
-		scrollTo('#resume');
+	document.getElementById('blog-link').addEventListener('click', function () {
+		scrollTo('#blog');
 	});
 
 	document.getElementById('projects-link').addEventListener('click', function () {
 		scrollTo('#projects');
+	});
+
+	document.getElementById('resume-link').addEventListener('click', function () {
+		scrollTo('#resume');
 	});
 
 	document.getElementById('stuff-link').addEventListener('click', function () {
