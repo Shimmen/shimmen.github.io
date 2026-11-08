@@ -87,35 +87,9 @@
 		requestAnimationFrame(render);
 	}
 
-	// From http://stackoverflow.com/questions/13382516/getting-scroll-bar-width-using-javascript
-	function getScrollbarWidth() {
-		var outer = document.createElement('div');
-		outer.style.visibility = 'hidden';
-		outer.style.width = '100px';
-		outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
-
-		document.body.appendChild(outer);
-
-		var widthNoScroll = outer.offsetWidth;
-		// force scrollbars
-		outer.style.overflow = 'scroll';
-
-		// add innerdiv
-		var inner = document.createElement('div');
-		inner.style.width = '100%';
-		outer.appendChild(inner);
-
-		var widthWithScroll = inner.offsetWidth;
-
-		// remove divs
-		outer.parentNode.removeChild(outer);
-
-		return widthNoScroll - widthWithScroll;
-	}
-
 	function resizeCanvas() {
 
-		var newWidth = window.innerWidth - getScrollbarWidth();
+		var newWidth = document.documentElement.clientWidth;
 
 		// Only change the canvas size if the width has changed (i.e. rotating device or changing window size). Some
 		// mobile browsers change the window size when scrolling up and down, and we don't care about those events.
