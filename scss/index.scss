@@ -83,6 +83,13 @@ header {
 		margin-right: 15px;
 	}
 
+	.year {
+		margin-right: 0.6em;
+		font-family: $display-font;
+		font-weight: 700;
+		color: #444;
+	}
+
 }
 
 @include mobile {

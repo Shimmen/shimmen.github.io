@@ -199,6 +199,13 @@ header {
       width: 100%;
       height: auto; } }
 
+.project .year {
+  margin-right: 0.6em;
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  color: #444;
+}
+
 .follow-buttons {
   display: flex;
   flex-wrap: wrap;
