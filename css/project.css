@@ -207,4 +207,36 @@ section h1 {
 section b {
   font-weight: 700; }
 
+.follow-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.follow-buttons .bluesky-follow-button {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 0 12px 0 10px;
+  border-radius: 9999px;
+  background-color: #1185fe;
+  color: #fff;
+  text-decoration: none;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.follow-buttons .bluesky-follow-button:hover {
+  background-color: #0a6fd8;
+  color: #fff;
+}
+.follow-buttons .bluesky-follow-button svg {
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+}
+
 /*# sourceMappingURL=project.css.map */
